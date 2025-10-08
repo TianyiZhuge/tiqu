@@ -151,6 +151,36 @@
             border: 2px solid #e0e0e0;
         }
 
+        .variable-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .variable-card .form-group {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .variable-card .variable-name-group {
+            flex: 0 0 200px;
+        }
+
+        .variable-card input[type="text"] {
+            width: 100%;
+        }
+
+        .variable-card .remove-btn-container {
+            display: flex;
+            align-items: center;
+            padding-top: 28px;
+        }
+
         .add-character-btn {
             background: #667eea;
             color: white;
@@ -534,6 +564,92 @@
                 </div>
             </div>
 
+            <!-- 第七步：MVU 组件包 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第七步：MVU 组件包（可选）</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>是否使用 MVU 组件包</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needMVU" name="mvuNeed" value="need">
+                                <label for="needMVU">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noMVU" name="mvuNeed" value="no">
+                                <label for="noMVU">不需要</label>
+                            </div>
+                        </div>
+                        <p class="placeholder-text">MVU（Magical Variable Update）是一个用于实现角色和世界动态性的变量管理框架，通过变量追踪和条件触发，使角色和世界能够根据故事进展展现不同的行为模式和状态。</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>组件选择（可多选）</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu1" value="变量初始化条目（稳定版）">
+                                <label for="mvu1">变量初始化条目（稳定版）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu2" value="变量初始化条目（Beta版）">
+                                <label for="mvu2">变量初始化条目（Beta版）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu3" value="变量更新规则">
+                                <label for="mvu3">变量更新规则</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu4" value="变量处理指令集（稳定版）">
+                                <label for="mvu4">变量处理指令集（稳定版）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu5" value="变量处理指令集（Beta版）">
+                                <label for="mvu5">变量处理指令集（Beta版）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu6" value="分阶段角色设定">
+                                <label for="mvu6">分阶段角色设定</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu7" value="动态世界内容">
+                                <label for="mvu7">动态世界内容</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="mvu8" value="HTML状态栏">
+                                <label for="mvu8">HTML状态栏</label>
+                            </div>
+                        </div>
+                        <p class="placeholder-text">提示：如果选择了Beta版初始化，建议搭配Beta版指令集使用；如果选择了稳定版初始化，建议搭配稳定版指令集使用。</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>需要追踪的变量</label>
+                        <div id="mvuVariablesContainer"></div>
+                        <button class="add-character-btn" onclick="addVariable()">➕ 添加变量</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mvuStageSettings">分阶段角色设定说明</label>
+                        <textarea id="mvuStageSettings" placeholder="描述角色在不同阶段的行为变化，例如：&#10;- 好感度 0-30：冷淡，对话简短&#10;- 好感度 31-60：开始友好，愿意聊天&#10;- 好感度 61-80：信任玩家，会分享秘密&#10;- 好感度 81-100：完全信任，展现真实性格"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mvuDynamicWorld">动态世界内容说明</label>
+                        <textarea id="mvuDynamicWorld" placeholder="描述世界内容如何随变量变化，例如：&#10;- 时间为白天：街道繁忙，商店营业&#10;- 时间为夜晚：街道空旷，氛围神秘&#10;- 故事阶段为第二章：城市进入戒严状态"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mvuHtmlDisplay">HTML 状态栏显示需求</label>
+                        <textarea id="mvuHtmlDisplay" placeholder="描述需要在状态栏显示的内容，例如：&#10;- 显示好感度进度条（红色到粉色渐变）&#10;- 显示当前故事章节&#10;- 显示时间和天气"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mvuNotes">其他特殊说明</label>
+                        <textarea id="mvuNotes" placeholder="其他 MVU 系统相关的补充说明"></textarea>
+                    </div>
+                </div>
+            </div>
+
             <!-- 额外需求 -->
             <div class="section">
                 <h2 class="collapsible" onclick="toggleCollapse(this)">额外需求</h2>
@@ -555,10 +671,12 @@
 
     <script>
         let characterCount = 0;
+        let variableCount = 0;
 
-        // 初始化时添加一个角色卡
+        // 初始化时添加一个角色卡和一个变量
         window.onload = function() {
             addCharacter();
+            addVariable();
         };
 
         // 添加角色卡片
@@ -603,6 +721,35 @@
         // 删除角色卡片
         function removeCharacter(id) {
             const card = document.getElementById('character-' + id);
+            if (card) {
+                card.remove();
+            }
+        }
+
+        // 添加变量卡片
+        function addVariable() {
+            variableCount++;
+            const container = document.getElementById('mvuVariablesContainer');
+            const card = document.createElement('div');
+            card.className = 'variable-card';
+            card.id = 'variable-' + variableCount;
+            card.innerHTML = `
+                <div class="form-group variable-name-group">
+                    <label>变量名</label>
+                    <input type="text" class="var-name" placeholder="例如：好感度">
+                </div>
+                <div class="form-group">
+                    <label>说明/要求</label>
+                    <input type="text" class="var-desc" placeholder="例如：数值范围 0-100，影响角色对话风格">
+                </div>
+                ${variableCount > 1 ? '<div class="remove-btn-container"><button class="remove-character-btn" onclick="removeVariable(' + variableCount + ')">删除</button></div>' : ''}
+            `;
+            container.appendChild(card);
+        }
+
+        // 删除变量卡片
+        function removeVariable(id) {
+            const card = document.getElementById('variable-' + id);
             if (card) {
                 card.remove();
             }
@@ -797,6 +944,77 @@
             md += '**参考模板：** `基础模板/Z.6.玩家模板.md`\n\n';
             md += '---\n\n';
 
+            // 第七步：MVU 组件包
+            md += '### ✅ 第七步：MVU 组件包（可选）\n\n';
+            const needMVU = document.getElementById('needMVU').checked;
+            const noMVU = document.getElementById('noMVU').checked;
+            md += '**是否使用 MVU 组件包：**\n';
+            md += `- [${needMVU ? 'x' : ' '}] 需要\n`;
+            md += `- [${noMVU ? 'x' : ' '}] 不需要\n\n`;
+
+            md += '**组件选择：**\n';
+            md += `- [${document.getElementById('mvu1').checked ? 'x' : ' '}] 变量初始化条目（稳定版）\n`;
+            md += `- [${document.getElementById('mvu2').checked ? 'x' : ' '}] 变量初始化条目（Beta版）\n`;
+            md += `- [${document.getElementById('mvu3').checked ? 'x' : ' '}] 变量更新规则\n`;
+            md += `- [${document.getElementById('mvu4').checked ? 'x' : ' '}] 变量处理指令集（稳定版）\n`;
+            md += `- [${document.getElementById('mvu5').checked ? 'x' : ' '}] 变量处理指令集（Beta版）\n`;
+            md += `- [${document.getElementById('mvu6').checked ? 'x' : ' '}] 分阶段角色设定\n`;
+            md += `- [${document.getElementById('mvu7').checked ? 'x' : ' '}] 动态世界内容\n`;
+            md += `- [${document.getElementById('mvu8').checked ? 'x' : ' '}] HTML状态栏\n\n`;
+
+            // 收集变量信息
+            const variableCards = document.querySelectorAll('.variable-card');
+            md += '**需要追踪的变量：**\n\n';
+            if (variableCards.length > 0) {
+                variableCards.forEach((card, index) => {
+                    const varName = card.querySelector('.var-name').value || '_[待填写]_';
+                    const varDesc = card.querySelector('.var-desc').value || '_[待填写]_';
+                    md += `${index + 1}. **${varName}**：${varDesc}\n`;
+                });
+                md += '\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            // 分阶段角色设定
+            const stageSettings = document.getElementById('mvuStageSettings').value;
+            md += '**分阶段角色设定说明：**\n';
+            if (stageSettings) {
+                md += '```\n' + stageSettings + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            // 动态世界内容
+            const dynamicWorld = document.getElementById('mvuDynamicWorld').value;
+            md += '**动态世界内容说明：**\n';
+            if (dynamicWorld) {
+                md += '```\n' + dynamicWorld + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            // HTML 状态栏
+            const htmlDisplay = document.getElementById('mvuHtmlDisplay').value;
+            md += '**HTML 状态栏显示需求：**\n';
+            if (htmlDisplay) {
+                md += '```\n' + htmlDisplay + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            // 其他特殊说明
+            const mvuNotes = document.getElementById('mvuNotes').value;
+            md += '**其他特殊说明：**\n';
+            if (mvuNotes) {
+                md += '```\n' + mvuNotes + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            md += '**参考模板：** `MVU组件包/` 目录下的相关文件\n\n';
+            md += '---\n\n';
+
             // 额外需求
             md += '## 额外需求\n\n';
             const extraReq = document.getElementById('extraRequirements').value;
@@ -816,6 +1034,7 @@
             md += '- [ ] 对话补充完成（如需要）\n';
             md += '- [ ] 角色采访完成（如需要）\n';
             md += '- [ ] 玩家角色完成（如需要）\n';
+            md += '- [ ] MVU 组件包配置完成（如需要）\n';
             md += '- [ ] 整合测试\n';
             md += '- [ ] 导入 SillyTavern 测试\n';
             md += '- [ ] 最终调整和优化\n\n';

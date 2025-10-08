@@ -6,7 +6,8 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\n添加.gitignore文件，忽略作品文件夹\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit -m \"$(cat <<''EOF''\n添加基础模板文件：对话补充、角色采访、玩家模板\n\n扩充了基础模板库，新增三个模板文件用于辅助内容创作。\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(start to-do-generator.html)"
     ],
     "deny": [],
     "ask": []
