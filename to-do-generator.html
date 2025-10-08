@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色卡创作任务清单生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h2::before {
+            content: "▸";
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .section h3 {
+            color: #555;
+            margin: 20px 0 15px 0;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .checkbox-item:hover {
+            background: #f0f0f0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .character-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .add-character-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .add-character-btn:hover {
+            background: #5568d3;
+        }
+
+        .remove-character-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .remove-character-btn:hover {
+            background: #c82333;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .placeholder-text {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible::after {
+            content: " ▼";
+            font-size: 0.8em;
+            opacity: 0.6;
+        }
+
+        .collapsible.collapsed::after {
+            content: " ▶";
+        }
+
+        .collapse-content {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapse-content.collapsed {
+            max-height: 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 角色卡创作任务清单生成器</h1>
+            <p>填写信息后一键生成 Markdown 格式的任务清单</p>
+        </div>
+
+        <div class="content">
+            <!-- 基本信息 -->
+            <div class="section">
+                <h2>基本信息</h2>
+                <div class="form-group">
+                    <label for="workName">作品名称</label>
+                    <input type="text" id="workName" placeholder="例如：废土幸存者、魔法学院日常">
+                </div>
+                <div class="form-group">
+                    <label for="workType">作品类型</label>
+                    <input type="text" id="workType" placeholder="例如：废土科幻、奇幻冒险、现代都市、历史架空">
+                </div>
+                <div class="form-group">
+                    <label for="workGoal">创作目标</label>
+                    <textarea id="workGoal" placeholder="例如：用于 SillyTavern 的角色扮演、制作互动小说等"></textarea>
+                </div>
+            </div>
+
+            <!-- 第一步：世界观构建 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第一步：世界观构建</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>背景设定需求</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needBackground" name="backgroundNeed" value="need">
+                                <label for="needBackground">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noBackground" name="backgroundNeed" value="no">
+                                <label for="noBackground">不需要</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>背景类型（可多选）</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bgType1" value="世界观/国家设定">
+                                <label for="bgType1">世界观/国家设定</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bgType2" value="游戏系统设定">
+                                <label for="bgType2">游戏系统设定</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bgType3" value="魔法系统设定">
+                                <label for="bgType3">魔法系统设定</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bgType4" value="角色背景设定">
+                                <label for="bgType4">角色背景设定</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="backgroundOutline">背景设定大纲</label>
+                        <textarea id="backgroundOutline" placeholder="简要描述你想要的背景设定，例如：&#10;- 时代：后启示录时代，核战争后 50 年&#10;- 地点：废墟中重建的避难所城邦联盟&#10;- 社会结构：由避难所理事会统治，分为技术派和军事派&#10;- 主要冲突：资源匮乏、变异生物威胁、派系斗争"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二步：角色设定 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第二步：角色设定</h2>
+                <div class="collapse-content">
+                    <div id="charactersContainer"></div>
+                    <button class="add-character-btn" onclick="addCharacter()">➕ 添加角色</button>
+                </div>
+            </div>
+
+            <!-- 第三步：开场白 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第三步：开场白</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>开场白需求</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needOpening" name="openingNeed" value="need">
+                                <label for="needOpening">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noOpening" name="openingNeed" value="no">
+                                <label for="noOpening">不需要</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="openingScene">开场场景</label>
+                        <input type="text" id="openingScene" placeholder="例如：日常/冒险/悬疑/战斗/浪漫">
+                    </div>
+
+                    <div class="form-group">
+                        <label>目标篇幅</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="length1" name="openingLength" value="简单场景（300-500字）">
+                                <label for="length1">简单场景（300-500字）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="length2" name="openingLength" value="标准场景（500-800字）">
+                                <label for="length2">标准场景（500-800字）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="length3" name="openingLength" value="复杂场景（800-1500字）">
+                                <label for="length3">复杂场景（800-1500字）</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="openingOutline">开场白大纲</label>
+                        <textarea id="openingOutline" placeholder="描述你希望的开场场景，例如：&#10;- 场景：艾莉克斯在地表废墟中执行任务时，设备出现故障&#10;- 时间：傍晚，即将天黑&#10;- 氛围：紧张、危机感&#10;- 与 {{user}} 的关系：临时组队的搭档"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第四步：对话补充 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第四步：对话补充（可选）</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>是否需要对话补充</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needDialogue" name="dialogueNeed" value="need">
+                                <label for="needDialogue">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noDialogue" name="dialogueNeed" value="no">
+                                <label for="noDialogue">不需要</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dialogueCharacter">对应角色</label>
+                        <input type="text" id="dialogueCharacter" placeholder="填写需要对话补充的角色名">
+                    </div>
+
+                    <div class="form-group">
+                        <label>场景需求（可多选）</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scene1" value="日常闲聊">
+                                <label for="scene1">日常闲聊</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scene2" value="紧张时刻">
+                                <label for="scene2">紧张时刻</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scene3" value="战斗场景">
+                                <label for="scene3">战斗场景</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scene4" value="亲密互动">
+                                <label for="scene4">亲密互动</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="scene5" value="情绪波动">
+                                <label for="scene5">情绪波动（高兴/愤怒/悲伤）</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第五步：角色采访 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第五步：角色采访（可选）</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>是否需要角色采访</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needInterview" name="interviewNeed" value="need">
+                                <label for="needInterview">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noInterview" name="interviewNeed" value="no">
+                                <label for="noInterview">不需要</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interviewCharacter">对应角色</label>
+                        <input type="text" id="interviewCharacter" placeholder="填写需要进行采访的角色名">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="interviewTopics">采访主题</label>
+                        <textarea id="interviewTopics" placeholder="列出想要深入探讨的主题或问题，例如：&#10;1. 关于她离开避难所的真实原因&#10;2. 对'伊甸园计划'的看法和动机&#10;3. 最恐惧的事情是什么"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第六步：玩家角色设定 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">第六步：玩家角色设定（可选）</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label>是否需要玩家设定</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="needPlayer" name="playerNeed" value="need">
+                                <label for="needPlayer">需要</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="noPlayer" name="playerNeed" value="no">
+                                <label for="noPlayer">不需要</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>设定深度</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="depth1" name="playerDepth" value="极简设定（最大自由度）">
+                                <label for="depth1">极简设定（最大自由度）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="depth2" name="playerDepth" value="简化设定（有基本框架）">
+                                <label for="depth2">简化设定（有基本框架）</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="depth3" name="playerDepth" value="完整设定（明确背景和性格）">
+                                <label for="depth3">完整设定（明确背景和性格）</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="playerOutline">玩家角色大纲</label>
+                        <textarea id="playerOutline" placeholder="描述玩家角色的基本信息，例如：&#10;- 身份：地表拾荒者&#10;- 背景：在废土中长大&#10;- 特点：野外生存能力强"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 额外需求 -->
+            <div class="section">
+                <h2 class="collapsible" onclick="toggleCollapse(this)">额外需求</h2>
+                <div class="collapse-content">
+                    <div class="form-group">
+                        <label for="extraRequirements">特殊要求或补充说明</label>
+                        <textarea id="extraRequirements" placeholder="在这里填写任何额外的要求、想法或注意事项，例如：&#10;- 角色对话要有明显的口音或口头禅&#10;- 某些禁忌话题或敏感设定&#10;- 想要的叙事风格（严肃/轻松/黑暗/幽默等）"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="generateMarkdown()">📄 生成 Markdown</button>
+                <button class="btn btn-secondary" onclick="resetForm()">🔄 重置表单</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let characterCount = 0;
+
+        // 初始化时添加一个角色卡
+        window.onload = function() {
+            addCharacter();
+        };
+
+        // 添加角色卡片
+        function addCharacter() {
+            characterCount++;
+            const container = document.getElementById('charactersContainer');
+            const card = document.createElement('div');
+            card.className = 'character-card';
+            card.id = 'character-' + characterCount;
+            card.innerHTML = `
+                <h3>角色 ${characterCount}</h3>
+                <div class="form-group">
+                    <label>角色名称</label>
+                    <input type="text" class="char-name" placeholder="填写角色名称">
+                </div>
+                <div class="form-group">
+                    <label>角色定位</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" class="char-role-main" value="主角（NPC）">
+                            <label>主角（NPC）</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" class="char-role-important" value="重要配角">
+                            <label>重要配角</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" class="char-role-normal" value="普通 NPC">
+                            <label>普通 NPC</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>人物设定大纲</label>
+                    <textarea class="char-outline" placeholder="简要描述角色的核心信息，例如：&#10;- 姓名：艾莉克斯&#10;- 性别/年龄：女/28岁&#10;- 职业：工程师&#10;- 核心性格：聪明、谨慎"></textarea>
+                </div>
+                ${characterCount > 1 ? '<button class="remove-character-btn" onclick="removeCharacter(' + characterCount + ')">删除此角色</button>' : ''}
+            `;
+            container.appendChild(card);
+        }
+
+        // 删除角色卡片
+        function removeCharacter(id) {
+            const card = document.getElementById('character-' + id);
+            if (card) {
+                card.remove();
+            }
+        }
+
+        // 切换折叠
+        function toggleCollapse(element) {
+            element.classList.toggle('collapsed');
+            const content = element.nextElementSibling;
+            content.classList.toggle('collapsed');
+        }
+
+        // 单选checkbox处理
+        document.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' && e.target.name) {
+                const name = e.target.name;
+                const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+                if (e.target.checked) {
+                    checkboxes.forEach(cb => {
+                        if (cb !== e.target) cb.checked = false;
+                    });
+                }
+            }
+        });
+
+        // 生成 Markdown
+        function generateMarkdown() {
+            let md = '# 角色卡创作任务清单\n\n';
+            md += '> 💡 **使用说明**：此文件由任务清单生成器自动生成，在创作过程中可以随时更新和调整。\n\n';
+            md += '---\n\n';
+
+            // 基本信息
+            md += '## 基本信息\n\n';
+            md += `**作品名称：** ${document.getElementById('workName').value || '_[待填写]_'}\n\n`;
+            md += `**作品类型：** ${document.getElementById('workType').value || '_[待填写]_'}\n\n`;
+            md += `**创作目标：** ${document.getElementById('workGoal').value || '_[待填写]_'}\n\n`;
+            md += '---\n\n';
+
+            // 第一步：世界观构建
+            md += '## 创作任务清单\n\n';
+            md += '### ✅ 第一步：世界观构建\n\n';
+
+            const needBg = document.getElementById('needBackground').checked;
+            const noBg = document.getElementById('noBackground').checked;
+            md += '**背景设定需求：**\n';
+            md += `- [${needBg ? 'x' : ' '}] 需要\n`;
+            md += `- [${noBg ? 'x' : ' '}] 不需要\n\n`;
+
+            md += '**背景类型：**\n';
+            md += `- [${document.getElementById('bgType1').checked ? 'x' : ' '}] 世界观/国家设定\n`;
+            md += `- [${document.getElementById('bgType2').checked ? 'x' : ' '}] 游戏系统设定\n`;
+            md += `- [${document.getElementById('bgType3').checked ? 'x' : ' '}] 魔法系统设定\n`;
+            md += `- [${document.getElementById('bgType4').checked ? 'x' : ' '}] 角色背景设定\n\n`;
+
+            const bgOutline = document.getElementById('backgroundOutline').value;
+            md += '**背景设定大纲：**\n';
+            if (bgOutline) {
+                md += '```\n' + bgOutline + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            md += '**参考模板：** `基础模板/Z.1.背景模板.md`\n\n';
+            md += '---\n\n';
+
+            // 第二步：角色设定
+            md += '### ✅ 第二步：角色设定\n\n';
+            const characterCards = document.querySelectorAll('.character-card');
+            md += `**主要角色数量：** ${characterCards.length}\n\n`;
+
+            characterCards.forEach((card, index) => {
+                md += `#### 角色 ${index + 1}\n\n`;
+                const name = card.querySelector('.char-name').value;
+                md += `**角色名称：** ${name || '_[待填写]_'}\n\n`;
+
+                md += '**角色定位：**\n';
+                md += `- [${card.querySelector('.char-role-main').checked ? 'x' : ' '}] 主角（NPC）\n`;
+                md += `- [${card.querySelector('.char-role-important').checked ? 'x' : ' '}] 重要配角\n`;
+                md += `- [${card.querySelector('.char-role-normal').checked ? 'x' : ' '}] 普通 NPC\n\n`;
+
+                const outline = card.querySelector('.char-outline').value;
+                md += '**人物设定大纲：**\n';
+                if (outline) {
+                    md += '```\n' + outline + '\n```\n\n';
+                } else {
+                    md += '_[待填写]_\n\n';
+                }
+
+                md += '**参考模板：** `基础模板/Z.2.人物模板.md`\n\n';
+                md += '---\n\n';
+            });
+
+            // 第三步：开场白
+            md += '### ✅ 第三步：开场白\n\n';
+            const needOpening = document.getElementById('needOpening').checked;
+            const noOpening = document.getElementById('noOpening').checked;
+            md += '**开场白需求：**\n';
+            md += `- [${needOpening ? 'x' : ' '}] 需要\n`;
+            md += `- [${noOpening ? 'x' : ' '}] 不需要\n\n`;
+
+            md += `**开场场景：** ${document.getElementById('openingScene').value || '_[待填写]_'}\n\n`;
+
+            md += '**目标篇幅：**\n';
+            md += `- [${document.getElementById('length1').checked ? 'x' : ' '}] 简单场景（300-500字）\n`;
+            md += `- [${document.getElementById('length2').checked ? 'x' : ' '}] 标准场景（500-800字）\n`;
+            md += `- [${document.getElementById('length3').checked ? 'x' : ' '}] 复杂场景（800-1500字）\n\n`;
+
+            const openingOutline = document.getElementById('openingOutline').value;
+            md += '**开场白大纲：**\n';
+            if (openingOutline) {
+                md += '```\n' + openingOutline + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            md += '**参考模板：** `基础模板/Z.3.开场白.md`\n\n';
+            md += '---\n\n';
+
+            // 第四步：对话补充
+            md += '### ✅ 第四步：对话补充（可选）\n\n';
+            const needDialogue = document.getElementById('needDialogue').checked;
+            const noDialogue = document.getElementById('noDialogue').checked;
+            md += '**是否需要对话补充：**\n';
+            md += `- [${needDialogue ? 'x' : ' '}] 需要\n`;
+            md += `- [${noDialogue ? 'x' : ' '}] 不需要\n\n`;
+
+            md += `**对应角色：** ${document.getElementById('dialogueCharacter').value || '_[待填写]_'}\n\n`;
+
+            md += '**场景需求：**\n';
+            md += `- [${document.getElementById('scene1').checked ? 'x' : ' '}] 日常闲聊\n`;
+            md += `- [${document.getElementById('scene2').checked ? 'x' : ' '}] 紧张时刻\n`;
+            md += `- [${document.getElementById('scene3').checked ? 'x' : ' '}] 战斗场景\n`;
+            md += `- [${document.getElementById('scene4').checked ? 'x' : ' '}] 亲密互动\n`;
+            md += `- [${document.getElementById('scene5').checked ? 'x' : ' '}] 情绪波动（高兴/愤怒/悲伤）\n\n`;
+
+            md += '**参考模板：** `基础模板/Z.4.对话补充.md`\n\n';
+            md += '---\n\n';
+
+            // 第五步：角色采访
+            md += '### ✅ 第五步：角色采访（可选）\n\n';
+            const needInterview = document.getElementById('needInterview').checked;
+            const noInterview = document.getElementById('noInterview').checked;
+            md += '**是否需要角色采访：**\n';
+            md += `- [${needInterview ? 'x' : ' '}] 需要\n`;
+            md += `- [${noInterview ? 'x' : ' '}] 不需要\n\n`;
+
+            md += `**对应角色：** ${document.getElementById('interviewCharacter').value || '_[待填写]_'}\n\n`;
+
+            const interviewTopics = document.getElementById('interviewTopics').value;
+            md += '**采访主题：**\n';
+            if (interviewTopics) {
+                md += '```\n' + interviewTopics + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            md += '**参考模板：** `基础模板/Z.5.角色采访.md`\n\n';
+            md += '---\n\n';
+
+            // 第六步：玩家角色设定
+            md += '### ✅ 第六步：玩家角色设定（可选）\n\n';
+            const needPlayer = document.getElementById('needPlayer').checked;
+            const noPlayer = document.getElementById('noPlayer').checked;
+            md += '**是否需要玩家设定：**\n';
+            md += `- [${needPlayer ? 'x' : ' '}] 需要\n`;
+            md += `- [${noPlayer ? 'x' : ' '}] 不需要\n\n`;
+
+            md += '**设定深度：**\n';
+            md += `- [${document.getElementById('depth1').checked ? 'x' : ' '}] 极简设定（最大自由度）\n`;
+            md += `- [${document.getElementById('depth2').checked ? 'x' : ' '}] 简化设定（有基本框架）\n`;
+            md += `- [${document.getElementById('depth3').checked ? 'x' : ' '}] 完整设定（明确背景和性格）\n\n`;
+
+            const playerOutline = document.getElementById('playerOutline').value;
+            md += '**玩家角色大纲：**\n';
+            if (playerOutline) {
+                md += '```\n' + playerOutline + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+
+            md += '**参考模板：** `基础模板/Z.6.玩家模板.md`\n\n';
+            md += '---\n\n';
+
+            // 额外需求
+            md += '## 额外需求\n\n';
+            const extraReq = document.getElementById('extraRequirements').value;
+            md += '**特殊要求或补充说明：**\n';
+            if (extraReq) {
+                md += '```\n' + extraReq + '\n```\n\n';
+            } else {
+                md += '_[待填写]_\n\n';
+            }
+            md += '---\n\n';
+
+            // 创作进度跟踪
+            md += '## 创作进度跟踪\n\n';
+            md += '- [ ] 背景设定完成\n';
+            md += '- [ ] 角色设定完成\n';
+            md += '- [ ] 开场白完成\n';
+            md += '- [ ] 对话补充完成（如需要）\n';
+            md += '- [ ] 角色采访完成（如需要）\n';
+            md += '- [ ] 玩家角色完成（如需要）\n';
+            md += '- [ ] 整合测试\n';
+            md += '- [ ] 导入 SillyTavern 测试\n';
+            md += '- [ ] 最终调整和优化\n\n';
+            md += '---\n\n';
+
+            // 版本记录
+            const today = new Date().toISOString().split('T')[0];
+            md += '## 版本记录\n\n';
+            md += `**v1.0** - ${today} - 初始版本创建\n\n`;
+            md += '---\n\n';
+            md += '> 💾 **提示**：建议使用 Git 进行版本管理，每完成一个重要阶段就提交一次，方便回溯和对比不同版本。\n';
+
+            // 下载文件
+            downloadMarkdown(md);
+        }
+
+        // 下载 Markdown 文件
+        function downloadMarkdown(content) {
+            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'to-do.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('✅ Markdown 文件已生成！请查看下载的 to-do.md 文件。');
+        }
+
+        // 重置表单
+        function resetForm() {
+            if (confirm('确定要重置表单吗？所有填写的内容将被清空。')) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
