@@ -5,7 +5,8 @@
       "Bash(move:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(start to-do-generator.html)"
+      "Bash(start to-do-generator.html)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
