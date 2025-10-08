@@ -1,6 +1,6 @@
 # Nova Creator CLI - SillyTavern 角色卡自动化创作工具
 
-一个完全自动化的 SillyTavern 角色卡创作工作流，从需求到成品，只需三步。
+一个完全自动化的 SillyTavern 角色卡创作工作流，从需求到成品，只需两步。
 
 ## 核心特性
 
