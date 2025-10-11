@@ -108,6 +108,7 @@
 
         textarea {
             min-height: 200px;
+            max-height: none;
             resize: vertical;
         }
 
@@ -159,7 +160,7 @@
             border: 2px solid #e0e0e0;
             display: flex;
             gap: 10px;
-            align-items: flex-start;
+            align-items: stretch;
         }
 
         .variable-card .form-group {
@@ -173,12 +174,19 @@
 
         .variable-card input[type="text"] {
             width: 100%;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
         }
 
         .variable-card .remove-btn-container {
             display: flex;
-            align-items: center;
-            padding-top: 28px;
+            align-items: flex-end;
+            padding-bottom: 0;
+        }
+
+        .variable-card textarea {
+            min-height: 60px;
         }
 
         .add-character-btn {
@@ -195,6 +203,14 @@
 
         .add-character-btn:hover {
             background: #5568d3;
+        }
+
+        .add-character-btn:hover[style*="background: #28a745"] {
+            background: #218838 !important;
+        }
+
+        .add-character-btn:hover[style*="background: #dc3545"] {
+            background: #c82333 !important;
         }
 
         .remove-character-btn {
@@ -267,13 +283,16 @@
         }
 
         .collapse-content {
-            max-height: 2000px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
+            max-height: none;
+            overflow: visible;
+            transition: opacity 0.3s ease-out;
+            opacity: 1;
         }
 
         .collapse-content.collapsed {
             max-height: 0;
+            overflow: hidden;
+            opacity: 0;
         }
 
         @media (max-width: 768px) {
@@ -625,7 +644,11 @@
                     <div class="form-group">
                         <label>需要追踪的变量</label>
                         <div id="mvuVariablesContainer"></div>
-                        <button class="add-character-btn" onclick="addVariable()">➕ 添加变量</button>
+                        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                            <button class="add-character-btn" onclick="addVariable()">➕ 添加变量</button>
+                            <button class="add-character-btn" style="background: #28a745;" onclick="loadPresetVariables()">📋 加载预设变量</button>
+                            <button class="add-character-btn" style="background: #dc3545;" onclick="clearAllVariables()">🗑️ 清空所有变量</button>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -740,7 +763,7 @@
                 </div>
                 <div class="form-group">
                     <label>说明/要求</label>
-                    <input type="text" class="var-desc" placeholder="例如：数值范围 0-100，影响角色对话风格">
+                    <textarea class="var-desc" placeholder="例如：数值范围 0-100，影响角色对话风格" style="min-height: 60px; resize: vertical;"></textarea>
                 </div>
                 ${variableCount > 1 ? '<div class="remove-btn-container"><button class="remove-character-btn" onclick="removeVariable(' + variableCount + ')">删除</button></div>' : ''}
             `;
@@ -752,6 +775,81 @@
             const card = document.getElementById('variable-' + id);
             if (card) {
                 card.remove();
+            }
+        }
+
+        // 清空所有变量
+        function clearAllVariables() {
+            if (confirm('确定要清空所有变量吗？此操作不可撤销。')) {
+                const container = document.getElementById('mvuVariablesContainer');
+                container.innerHTML = '';
+                variableCount = 0;
+                // 添加一个空白变量
+                addVariable();
+            }
+        }
+
+        // 加载预设变量
+        function loadPresetVariables() {
+            if (confirm('确定要加载预设变量吗？这将清空当前所有变量。')) {
+                // 清空现有变量
+                const container = document.getElementById('mvuVariablesContainer');
+                container.innerHTML = '';
+                variableCount = 0;
+
+                // 预设变量列表（通用版本）
+                const presetVariables = [
+                    {
+                        name: '当前时间',
+                        desc: '格式为 yyyy年mm月dd日 星期X 上午/下午 hh:mm（24小时制），每次对话或场景转换后根据实际经历的时间自然推进'
+                    },
+                    {
+                        name: '当前地点',
+                        desc: '具体的房间或场所名称，当角色明确移动到新地点时立即更新'
+                    },
+                    {
+                        name: '好感度',
+                        desc: '数值范围 0-100，初始值为0，每次对话后根据角色对{{user}}行为的感受更新，单次变化±1~5'
+                    },
+                    {
+                        name: '当前着装',
+                        desc: '详细描述角色当前的穿着，在起床后、洗澡后、外出前等场景需要更新'
+                    },
+                    {
+                        name: '当前姿势',
+                        desc: '描述角色此刻的身体姿态和动作，每次对话或场景变化时更新，反映当前状态和情绪'
+                    },
+                    {
+                        name: '当前想法',
+                        desc: '描述角色当前内心的真实想法，可能与外在表现不一致，每次对话后更新，展现内心活动'
+                    },
+                    {
+                        name: '关系状态',
+                        desc: '描述角色与{{user}}的关系阶段，如"陌生人"、"初识"、"朋友"、"亲密"等，随着好感度变化而更新'
+                    }
+                ];
+
+                // 添加预设变量
+                presetVariables.forEach(preset => {
+                    variableCount++;
+                    const card = document.createElement('div');
+                    card.className = 'variable-card';
+                    card.id = 'variable-' + variableCount;
+                    card.innerHTML = `
+                        <div class="form-group variable-name-group">
+                            <label>变量名</label>
+                            <input type="text" class="var-name" placeholder="例如：好感度" value="${preset.name}">
+                        </div>
+                        <div class="form-group">
+                            <label>说明/要求</label>
+                            <textarea class="var-desc" placeholder="例如：数值范围 0-100，影响角色对话风格" style="min-height: 60px; resize: vertical;">${preset.desc}</textarea>
+                        </div>
+                        <div class="remove-btn-container"><button class="remove-character-btn" onclick="removeVariable(${variableCount})">删除</button></div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                alert('✅ 已加载 ' + presetVariables.length + ' 个预设变量！你可以根据需要进行修改或删除。');
             }
         }
 
