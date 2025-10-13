@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红尘卷书 状态</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: transparent;
+            padding: 10px;
+        }
+        .status-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+        .card-header h2 {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .tab-container {
+            display: flex;
+            background: #e0e5ec;
+            border-bottom: 2px solid #667eea;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+        }
+        .tab:hover {
+            background: #d0d5dc;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: white;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        .section-header:hover {
+            opacity: 0.9;
+        }
+        .section-header.expanded-header {
+            opacity: 1;
+        }
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            padding: 0 15px;
+        }
+        .section-content.expanded {
+            max-height: 2000px;
+            padding: 15px;
+        }
+        .property {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+        .property-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .property-value-container {
+            margin-top: 5px;
+        }
+        .value-main {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .value-description {
+            margin-left: 8px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        .progress-bar-value {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+        .info-text {
+            color: #666;
+            line-height: 1.6;
+        }
+        .task-item {
+            background: white;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+        .task-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        .task-type-main {
+            background: #ff6b6b;
+            color: white;
+        }
+        .task-type-side {
+            background: #4ecdc4;
+            color: white;
+        }
+        .achievement-item {
+            background: white;
+            padding: 8px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="status-card" id="status-card">
+    <div class="card-header">
+        <h2>红尘卷书</h2>
+    </div>
+
+    <div class="tab-container">
+        <div class="tab active" onclick="switchTab('main')">主页</div>
+        <div class="tab" onclick="switchTab('lingRuoxue')" id="tab-lingruoxue">凌若雪</div>
+        <div class="tab" onclick="switchTab('murongZhi')" id="tab-murongzhi">慕容芷</div>
+        <div class="tab" onclick="switchTab('lanLinger')" id="tab-lanlinger">蓝灵儿</div>
+        <div class="tab" onclick="switchTab('achievements')">江湖传记</div>
+    </div>
+
+    <div class="tab-content active" id="tab-content-main">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>当前状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">当前时间</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="current-time">N/A</span>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前地点</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="current-location">N/A</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>任务列表</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div id="task-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-content-lingRuoxue">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>凌若雪 核心状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">好感度</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lingruoxue-affection">0</span>
+                        <span class="value-description" id="lingruoxue-affection-desc"></span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="lingruoxue-affection-bar" class="progress-bar-value" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">关系状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lingruoxue-relationship">N/A</span>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">入队状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lingruoxue-inteam">未入队</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>当前状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">当前着装</div>
+                    <div class="info-text" id="lingruoxue-outfit">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前姿势</div>
+                    <div class="info-text" id="lingruoxue-pose">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前想法</div>
+                    <div class="info-text" id="lingruoxue-thoughts">N/A</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-content-murongZhi">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>慕容芷 核心状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">好感度</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="murongzhi-affection">0</span>
+                        <span class="value-description" id="murongzhi-affection-desc"></span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="murongzhi-affection-bar" class="progress-bar-value" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">关系状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="murongzhi-relationship">N/A</span>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">入队状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="murongzhi-inteam">未入队</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>当前状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">当前着装</div>
+                    <div class="info-text" id="murongzhi-outfit">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前姿势</div>
+                    <div class="info-text" id="murongzhi-pose">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前想法</div>
+                    <div class="info-text" id="murongzhi-thoughts">N/A</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-content-lanLinger">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>蓝灵儿 核心状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">好感度</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lanlinger-affection">0</span>
+                        <span class="value-description" id="lanlinger-affection-desc"></span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="lanlinger-affection-bar" class="progress-bar-value" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">关系状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lanlinger-relationship">N/A</span>
+                    </div>
+                </div>
+                <div class="property">
+                    <div class="property-name">入队状态</div>
+                    <div class="property-value-container">
+                        <span class="value-main" id="lanlinger-inteam">未入队</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>当前状态</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div class="property">
+                    <div class="property-name">当前着装</div>
+                    <div class="info-text" id="lanlinger-outfit">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前姿势</div>
+                    <div class="info-text" id="lanlinger-pose">N/A</div>
+                </div>
+                <div class="property">
+                    <div class="property-name">当前想法</div>
+                    <div class="info-text" id="lanlinger-thoughts">N/A</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-content" id="tab-content-achievements">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span>江湖传记</span>
+                <span>▼</span>
+            </div>
+            <div class="section-content">
+                <div id="achievements-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function SafeGetValue(obj, path, defaultValue = "N/A") {
+        let keys = Array.isArray(path) ? path : path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+                return defaultValue;
+            }
+            current = current[keys[i]];
+        }
+        if (current === undefined || current === null) {
+            return defaultValue;
+        }
+        if (Array.isArray(current)) {
+            if (current.length > 0) {
+                 const actualValue = current[0];
+                 if (typeof actualValue === 'boolean') {
+                     return actualValue;
+                 }
+                 return String(actualValue);
+            } else {
+                 return defaultValue;
+            }
+        }
+        if (typeof current === 'boolean') {
+            return current;
+        }
+        return String(current);
+    }
+
+    function updateProgressBar(barId, valueMainId, valueDescId, rawValueFromCharacterData, min, max, color) {
+        const progressBar = document.getElementById(barId);
+        const valueMainDisplay = document.getElementById(valueMainId);
+        const valueDescDisplay = document.getElementById(valueDescId);
+        if (!valueMainDisplay) return;
+        let fullDisplayString = SafeGetValue({ temp: rawValueFromCharacterData }, 'temp', String(min));
+        let numericValue = min;
+        let descriptionText = "";
+        const descriptionMatch = String(fullDisplayString).match(/\((.+)\)$/);
+        if (descriptionMatch && descriptionMatch[1]) {
+            descriptionText = descriptionMatch[1];
+            fullDisplayString = String(fullDisplayString).substring(0, descriptionMatch.index).trim();
+        }
+        const valueMatch = String(fullDisplayString).match(/(-?\d+(\.\d+)?)(?=[^\d.]*$|->)/);
+        if (valueMatch) {
+            numericValue = parseFloat(valueMatch[1]);
+            const parts = String(fullDisplayString).split('->');
+            valueMainDisplay.innerText = parts.length > 1 ? parts[1].trim() : parts[0].trim();
+        } else if (!isNaN(parseFloat(fullDisplayString))) {
+            numericValue = parseFloat(fullDisplayString);
+            valueMainDisplay.innerText = fullDisplayString;
+        } else {
+            if (Array.isArray(rawValueFromCharacterData) && typeof rawValueFromCharacterData[0] === 'number') {
+                numericValue = rawValueFromCharacterData[0];
+                valueMainDisplay.innerText = String(numericValue);
+            } else if (typeof rawValueFromCharacterData === 'number' || typeof rawValueFromCharacterData === 'string') {
+                valueMainDisplay.innerText = String(rawValueFromCharacterData);
+            } else {
+                valueMainDisplay.innerText = SafeGetValue({ temp: rawValueFromCharacterData }, 'temp', String(min));
+            }
+        }
+        if (valueDescDisplay) {
+            valueDescDisplay.innerText = descriptionText ? `(${descriptionText})` : "";
+        }
+        if (progressBar) {
+            numericValue = Math.max(min, Math.min(max, numericValue));
+            const range = max - min;
+            const percentage = range === 0 ? (numericValue >= max ? 100 : 0) : ((numericValue - min) / range) * 100;
+            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            progressBar.style.backgroundColor = color ? color : '#667eea';
+        }
+    }
+
+    async function initDisplay() {
+        try {
+            const messages = await getChatMessages(getCurrentMessageId());
+            if (!messages || messages.length === 0 || !messages[0].data) {
+                document.getElementById('status-card').innerHTML = "<p style='color:red; padding:10px;'>无法加载状态数据 (messages empty)</p>";
+                return;
+            }
+            const gameData = messages[0].data;
+            const characterData = gameData.stat_data;
+            if (!characterData) {
+                document.getElementById('status-card').innerHTML = "<p style='color:red; padding:10px;'>无法加载状态数据 (characterData missing)</p>";
+                return;
+            }
+
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const locationElem = document.getElementById('current-location');
+            if (locationElem) locationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            const taskListElem = document.getElementById('task-list');
+            if (taskListElem) {
+                const taskList = characterData['任务列表'];
+                if (taskList && typeof taskList === 'object') {
+                    let taskHtml = '';
+                    for (const taskKey in taskList) {
+                        const task = taskList[taskKey];
+                        const taskType = task['任务类型'] || '未知';
+                        const taskDesc = task['任务描述'] || '无描述';
+                        const taskName = task['任务名'] || taskKey;
+                        const typeClass = taskType === '主线' ? 'task-type-main' : 'task-type-side';
+                        taskHtml += `<div class="task-item"><span class="task-type ${typeClass}">${taskType}</span><strong>${taskName}</strong><br><span style="color:#666;font-size:0.9em;">${taskDesc}</span></div>`;
+                    }
+                    taskListElem.innerHTML = taskHtml || '<p style="color:#999;">暂无任务</p>';
+                } else {
+                    taskListElem.innerHTML = '<p style="color:#999;">暂无任务</p>';
+                }
+            }
+
+            const achievementsElem = document.getElementById('achievements-list');
+            if (achievementsElem) {
+                const achievements = characterData['江湖传记'];
+                if (Array.isArray(achievements) && achievements.length > 0) {
+                    let achHtml = '';
+                    achievements.forEach((ach, index) => {
+                        achHtml += `<div class="achievement-item">${index + 1}. ${ach}</div>`;
+                    });
+                    achievementsElem.innerHTML = achHtml;
+                } else {
+                    achievementsElem.innerHTML = '<p style="color:#999;">尚无事迹</p>';
+                }
+            }
+
+            const lingRuoxueInTeam = SafeGetValue(characterData, '凌若雪.入队状态');
+            const murongZhiInTeam = SafeGetValue(characterData, '慕容芷.入队状态');
+            const lanLingerInTeam = SafeGetValue(characterData, '蓝灵儿.入队状态');
+
+            if (lingRuoxueInTeam === 'true' || lingRuoxueInTeam === true) {
+                document.getElementById('tab-lingruoxue').style.display = 'block';
+                updateProgressBar(
+                    'lingruoxue-affection-bar',
+                    'lingruoxue-affection',
+                    'lingruoxue-affection-desc',
+                    SafeGetValue(characterData, '凌若雪.好感度'),
+                    0, 100, '#ff6b9d'
+                );
+                const lrxRelation = document.getElementById('lingruoxue-relationship');
+                if (lrxRelation) lrxRelation.innerText = SafeGetValue(characterData, '凌若雪.关系状态');
+                const lrxInteam = document.getElementById('lingruoxue-inteam');
+                if (lrxInteam) lrxInteam.innerText = SafeGetValue(characterData, '凌若雪.入队状态') === true || SafeGetValue(characterData, '凌若雪.入队状态') === 'true' ? '已入队' : '未入队';
+                const lrxOutfit = document.getElementById('lingruoxue-outfit');
+                if (lrxOutfit) lrxOutfit.innerText = SafeGetValue(characterData, '凌若雪.当前着装');
+                const lrxPose = document.getElementById('lingruoxue-pose');
+                if (lrxPose) lrxPose.innerText = SafeGetValue(characterData, '凌若雪.当前姿势');
+                const lrxThoughts = document.getElementById('lingruoxue-thoughts');
+                if (lrxThoughts) lrxThoughts.innerText = SafeGetValue(characterData, '凌若雪.当前想法');
+            } else {
+                document.getElementById('tab-lingruoxue').style.display = 'none';
+            }
+
+            if (murongZhiInTeam === 'true' || murongZhiInTeam === true) {
+                document.getElementById('tab-murongzhi').style.display = 'block';
+                updateProgressBar(
+                    'murongzhi-affection-bar',
+                    'murongzhi-affection',
+                    'murongzhi-affection-desc',
+                    SafeGetValue(characterData, '慕容芷.好感度'),
+                    0, 100, '#4ecdc4'
+                );
+                const mrzRelation = document.getElementById('murongzhi-relationship');
+                if (mrzRelation) mrzRelation.innerText = SafeGetValue(characterData, '慕容芷.关系状态');
+                const mrzInteam = document.getElementById('murongzhi-inteam');
+                if (mrzInteam) mrzInteam.innerText = SafeGetValue(characterData, '慕容芷.入队状态') === true || SafeGetValue(characterData, '慕容芷.入队状态') === 'true' ? '已入队' : '未入队';
+                const mrzOutfit = document.getElementById('murongzhi-outfit');
+                if (mrzOutfit) mrzOutfit.innerText = SafeGetValue(characterData, '慕容芷.当前着装');
+                const mrzPose = document.getElementById('murongzhi-pose');
+                if (mrzPose) mrzPose.innerText = SafeGetValue(characterData, '慕容芷.当前姿势');
+                const mrzThoughts = document.getElementById('murongzhi-thoughts');
+                if (mrzThoughts) mrzThoughts.innerText = SafeGetValue(characterData, '慕容芷.当前想法');
+            } else {
+                document.getElementById('tab-murongzhi').style.display = 'none';
+            }
+
+            if (lanLingerInTeam === 'true' || lanLingerInTeam === true) {
+                document.getElementById('tab-lanlinger').style.display = 'block';
+                updateProgressBar(
+                    'lanlinger-affection-bar',
+                    'lanlinger-affection',
+                    'lanlinger-affection-desc',
+                    SafeGetValue(characterData, '蓝灵儿.好感度'),
+                    0, 100, '#a29bfe'
+                );
+                const lleRelation = document.getElementById('lanlinger-relationship');
+                if (lleRelation) lleRelation.innerText = SafeGetValue(characterData, '蓝灵儿.关系状态');
+                const lleInteam = document.getElementById('lanlinger-inteam');
+                if (lleInteam) lleInteam.innerText = SafeGetValue(characterData, '蓝灵儿.入队状态') === true || SafeGetValue(characterData, '蓝灵儿.入队状态') === 'true' ? '已入队' : '未入队';
+                const lleOutfit = document.getElementById('lanlinger-outfit');
+                if (lleOutfit) lleOutfit.innerText = SafeGetValue(characterData, '蓝灵儿.当前着装');
+                const llePose = document.getElementById('lanlinger-pose');
+                if (llePose) llePose.innerText = SafeGetValue(characterData, '蓝灵儿.当前姿势');
+                const lleThoughts = document.getElementById('lanlinger-thoughts');
+                if (lleThoughts) lleThoughts.innerText = SafeGetValue(characterData, '蓝灵儿.当前想法');
+            } else {
+                document.getElementById('tab-lanlinger').style.display = 'none';
+            }
+
+        } catch (error) {
+            document.getElementById('status-card').innerHTML = `<p style='color:red; padding:10px;'>状态栏加载出错: ${error.message}</p>`;
+        }
+    }
+
+    function toggleSection(element) {
+        const content = element.nextElementSibling;
+        const arrow = element.querySelector('span:last-child');
+        if (!content || !arrow) return;
+        const isExpanded = content.classList.toggle('expanded');
+        element.classList.toggle('expanded-header', isExpanded);
+        arrow.innerText = isExpanded ? '▲' : '▼';
+    }
+
+    function switchTab(tabName) {
+        const tabs = document.querySelectorAll('.tab');
+        const contents = document.querySelectorAll('.tab-content');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('tab-content-' + tabName).classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', initDisplay);
+</script>
+</body>
+</html>
