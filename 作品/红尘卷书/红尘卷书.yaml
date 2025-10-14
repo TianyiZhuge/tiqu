@@ -5,7 +5,7 @@ character_version: "1.0"
 
 # 主要字段映射
 fields:
-  description: 作品/红尘卷书/角色设定_凌若雪.xyaml
+  description: ""
   personality: ""
   scenario: ""
   first_mes: 作品/红尘卷书/开场白.md
