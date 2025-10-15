@@ -61,6 +61,15 @@ character_book:
       depth: 4
       role: 0
 
+    # 背景设定-现代
+    - comment: "背景设定-现代"
+      content: 作品/红尘卷书/背景设定-现代.xyaml
+      enabled: false
+      position: before_char
+      insertion_order: 3
+      depth: 4
+      role: 0
+
     # 玩家角色
     - comment: "玩家角色_{{user}}"
       content: 作品/红尘卷书/玩家角色_乞丐{{user}}.xyaml
