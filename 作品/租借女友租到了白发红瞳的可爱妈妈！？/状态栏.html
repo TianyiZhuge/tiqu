@@ -249,39 +249,39 @@
         }
 
         .love-meter-beat {
-            width: clamp(60px, 12vw, 100px);
+            position: relative;
+            width: clamp(70px, 14vw, 120px);
             height: clamp(18px, 3vw, 26px);
             pointer-events: none;
+            overflow: hidden;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.05));
+            box-shadow: inset 0 0 6px rgba(255, 120, 185, 0.25);
+            color: #ff4fa0;
         }
 
         .love-meter-beat svg {
-            width: 100%;
+            width: 200%;
             height: 100%;
+            display: block;
+            animation: beat-slide 5.2s linear infinite;
         }
 
         .love-meter-beat path {
             fill: none;
-            stroke: rgba(255, 255, 255, 0.95);
+            stroke: currentColor;
             stroke-width: 3;
             stroke-linejoin: round;
             stroke-linecap: round;
-            stroke-dasharray: 190;
-            stroke-dashoffset: 190;
-            animation: beat-trace 2.4s linear infinite;
-            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+            filter: drop-shadow(0 0 4px rgba(255, 79, 160, 0.45));
         }
 
-        @keyframes beat-trace {
+        @keyframes beat-slide {
             0% {
-                stroke-dashoffset: 190;
-                opacity: 0.25;
-            }
-            40% {
-                opacity: 1;
+                transform: translateX(0);
             }
             100% {
-                stroke-dashoffset: -190;
-                opacity: 0.25;
+                transform: translateX(-50%);
             }
         }
 
@@ -376,8 +376,9 @@
                 <div class="love-meter-stats">
                     <div class="love-meter-value" id="harumi-heart-value">--</div>
                     <div class="love-meter-beat" aria-hidden="true">
-                        <svg viewBox="0 0 240 40" preserveAspectRatio="none">
+                        <svg viewBox="0 0 480 40" preserveAspectRatio="none">
                             <path d="M0 20 L12 20 L20 8 L28 32 L36 20 L58 20 L66 10 L74 30 L82 20 L102 20 L110 6 L118 34 L126 20 L148 20 L156 10 L164 30 L172 20 L192 20 L200 8 L208 32 L216 20 L240 20"></path>
+                            <path d="M0 20 L12 20 L20 8 L28 32 L36 20 L58 20 L66 10 L74 30 L82 20 L102 20 L110 6 L118 34 L126 20 L148 20 L156 10 L164 30 L172 20 L192 20 L200 8 L208 32 L216 20 L240 20" transform="translate(240, 0)"></path>
                         </svg>
                     </div>
                 </div>
