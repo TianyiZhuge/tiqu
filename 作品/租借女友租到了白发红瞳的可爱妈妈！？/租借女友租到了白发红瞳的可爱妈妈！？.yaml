@@ -1,5 +1,5 @@
 # 基础信息
-name: 晴美
+name: 租借女友租到了白发红瞳的可爱妈妈！？
 creator: ""
 character_version: "1.0"
 
@@ -49,6 +49,15 @@ character_book:
       enabled: true
       position: at_depth
       insertion_order: 2
+      depth: 1
+      role: 0
+
+    # 变量处理指令集
+    - comment: "晴美分阶段设定"
+      content: 作品/租借女友租到了白发红瞳的可爱妈妈！？/晴美分阶段设定.xyaml
+      enabled: true
+      position: at_depth
+      insertion_order: 3
       depth: 1
       role: 0
 

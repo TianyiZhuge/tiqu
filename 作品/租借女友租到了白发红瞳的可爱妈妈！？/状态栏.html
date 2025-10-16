@@ -6,15 +6,18 @@
     <title>晴美 状态</title>
     <style>
         :root {
-            --primary-color: #ff6b9d;
-            --secondary-color: #c44569;
-            --accent-color: #ffa07a;
-            --soft-pink: #ffe6f0;
-            --text-dark: #3a3a3a;
-            --text-light: #7a7a7a;
-            --border-color: #ffc0cb;
-            --shadow-color: rgba(255, 107, 157, 0.3);
-            --background-gradient: linear-gradient(135deg, #fff0f5 0%, #ffffff 100%);
+            --primary-color: #ff78b9;
+            --primary-dark: #e05397;
+            --accent-color: #ffb6d8;
+            --surface-color: rgba(255, 255, 255, 0.68);
+            --surface-strong: rgba(255, 255, 255, 0.85);
+            --text-primary: #312131;
+            --text-secondary: #6e4f6a;
+            --border-soft: rgba(255, 174, 211, 0.45);
+            --shadow-soft: rgba(224, 83, 151, 0.25);
+            --good-color: #ffedf6;
+            --meter-start: #ffd4e7;
+            --meter-end: #ff649d;
         }
 
         * {
@@ -25,204 +28,269 @@
 
         body {
             font-family: 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', Arial, sans-serif;
-            padding: 16px;
-            line-height: 1.6;
-            background: var(--background-gradient);
+            padding: 20px clamp(16px, 4vw, 48px);
+            background: linear-gradient(135deg, #fff2f8 0%, #ffe7f3 48%, #ffffff 100%);
+            color: var(--text-primary);
         }
 
-        .status-card {
-            max-width: 650px;
+        .status-hud {
+            max-width: 760px;
             margin: 0 auto;
             border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px var(--shadow-color);
-            background: white;
-            border: 3px solid var(--border-color);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            padding: 24px;
-            text-align: center;
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 237, 246, 0.92) 100%);
             position: relative;
             overflow: hidden;
+            box-shadow: 0 20px 40px var(--shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
         }
 
-        .card-header::before {
-            content: '♡';
+        .status-hud::before {
+            content: "";
             position: absolute;
-            font-size: 100px;
-            color: rgba(255, 255, 255, 0.1);
-            top: -30px;
-            left: -20px;
-            transform: rotate(-20deg);
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255, 120, 185, 0.24), transparent 55%),
+                        radial-gradient(circle at bottom left, rgba(255, 198, 219, 0.32), transparent 60%);
+            pointer-events: none;
         }
 
-        .card-header::after {
-            content: '♡';
-            position: absolute;
-            font-size: 80px;
-            color: rgba(255, 255, 255, 0.1);
-            bottom: -25px;
-            right: -15px;
-            transform: rotate(20deg);
-        }
-
-        .card-header h2 {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+        .hud-frame {
             position: relative;
             z-index: 1;
-            letter-spacing: 2px;
+            padding: clamp(18px, 3vw, 28px);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(18px, 3vw, 28px);
         }
 
-        .card-body {
-            padding: 20px;
+        .hud-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px clamp(18px, 4vw, 32px);
+            justify-content: space-between;
         }
 
-        .world-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+        .hud-title {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .world-info-item {
-            background: linear-gradient(135deg, var(--soft-pink) 0%, #ffffff 100%);
-            border-radius: 12px;
-            padding: 16px;
-            border: 2px solid var(--border-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .world-info-label {
+        .hud-title span {
             font-size: 13px;
-            color: var(--text-light);
-            margin-bottom: 6px;
-            font-weight: 500;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
         }
 
-        .world-info-value {
-            font-size: 15px;
-            font-weight: bold;
-            color: var(--text-dark);
-            word-break: break-word;
-        }
-
-        .info-section {
-            margin-bottom: 16px;
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            border: 2px solid var(--border-color);
-        }
-
-        .section-title {
-            background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%);
-            padding: 14px 18px;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
+        .hud-title h1 {
+            font-size: clamp(22px, 3.2vw, 28px);
+            font-weight: 700;
+            color: var(--text-primary);
             letter-spacing: 1px;
         }
 
-        .section-content {
-            padding: 18px;
-        }
-
-        .info-item {
-            margin-bottom: 14px;
-        }
-
-        .info-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .info-label {
-            font-weight: bold;
-            color: var(--secondary-color);
-            margin-bottom: 6px;
-            font-size: 14px;
-            display: flex;
+        .hud-status-chip {
+            display: inline-flex;
             align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: linear-gradient(120deg, rgba(255, 120, 185, 0.2), rgba(255, 182, 216, 0.3));
+            border: 1px solid rgba(255, 120, 185, 0.28);
         }
 
-        .info-label::before {
-            content: '▸';
-            margin-right: 6px;
-            font-size: 16px;
+        .hud-status-chip::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 120, 185, 0.8);
         }
 
-        .info-value {
-            color: var(--text-dark);
-            font-size: 14px;
-            line-height: 1.7;
-            padding: 8px 12px;
-            background: var(--soft-pink);
-            border-radius: 8px;
-            border-left: 3px solid var(--primary-color);
+        .hud-status-chip span {
+            font-size: 13px;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: clamp(12px, 2vw, 18px);
+        }
+
+        .stat-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-soft);
+            position: relative;
+        }
+
+        .stat-block::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            padding: 1px;
+            pointer-events: none;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: clamp(14px, 2.4vw, 16px);
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
             word-break: break-word;
         }
 
-        @media (max-width: 480px) {
-            .card-header h2 {
-                font-size: 24px;
+        .stat-block.thoughts {
+            grid-column: 1 / -1;
+        }
+
+        .love-meter {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: clamp(14px, 2.5vw, 18px);
+            border-radius: 16px;
+            background: var(--surface-strong);
+            border: 1px solid rgba(255, 158, 206, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
+
+        .love-meter-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            justify-content: space-between;
+        }
+
+        .love-meter-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--primary-dark);
+        }
+
+        .love-meter-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-shadow: 0 0 8px rgba(255, 120, 185, 0.25);
+        }
+
+        .meter-bar {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(255, 174, 211, 0.28);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--meter-start) 0%, var(--meter-end) 100%);
+            transition: width 0.4s ease;
+            box-shadow: 0 0 12px rgba(255, 120, 185, 0.4);
+        }
+
+        .hud-footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        @media (max-width: 540px) {
+            body {
+                padding: 16px;
             }
-            .world-info {
-                grid-template-columns: 1fr;
+
+            .hud-header {
+                gap: 12px;
             }
-            .section-title {
-                font-size: 15px;
+
+            .hud-status-chip {
+                padding: 6px 12px;
             }
-            .info-label {
-                font-size: 13px;
-            }
-            .info-value {
-                font-size: 13px;
+
+            .love-meter-value {
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
-<div class="status-card" id="status-card">
-    <div class="card-header">
-        <h2>♡ 晴美的状态 ♡</h2>
-    </div>
-
-    <div class="card-body">
-        <div class="world-info">
-            <div class="world-info-item">
-                <div class="world-info-label">当前时间</div>
-                <div class="world-info-value" id="world-time">--</div>
+<div class="status-hud" id="status-card">
+    <div class="hud-frame">
+        <div class="hud-header">
+            <div class="hud-title">
+                <span>恋爱同步频道</span>
+                <h1>晴美状态面板</h1>
             </div>
-            <div class="world-info-item">
-                <div class="world-info-label">当前地点</div>
-                <div class="world-info-value" id="world-location">--</div>
+            <div class="hud-status-chip">
+                <span>ACTIVE LINK</span>
             </div>
         </div>
 
-        <div class="info-section">
-            <div class="section-title">当前着装</div>
-            <div class="section-content">
-                <div class="info-value" id="harumi-outfit">--</div>
+        <div class="stat-grid">
+            <div class="stat-block">
+                <div class="stat-label">世界时间</div>
+                <div class="stat-value" id="world-time">--</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">当前地点</div>
+                <div class="stat-value" id="world-location">--</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">当前着装</div>
+                <div class="stat-value" id="harumi-outfit">--</div>
+            </div>
+            <div class="stat-block">
+                <div class="stat-label">当前姿势</div>
+                <div class="stat-value" id="harumi-pose">--</div>
+            </div>
+            <div class="stat-block thoughts">
+                <div class="stat-label">内心想法</div>
+                <div class="stat-value" id="harumi-thoughts">--</div>
             </div>
         </div>
 
-        <div class="info-section">
-            <div class="section-title">当前姿势</div>
-            <div class="section-content">
-                <div class="info-value" id="harumi-pose">--</div>
+        <div class="love-meter">
+            <div class="love-meter-header">
+                <div class="love-meter-title">晴美 · 心动值</div>
+                <div class="love-meter-value" id="harumi-heart-value">--</div>
+            </div>
+            <div class="meter-bar">
+                <div class="meter-fill" id="harumi-heart-fill"></div>
             </div>
         </div>
 
-        <div class="info-section">
-            <div class="section-title">内心想法</div>
-            <div class="section-content">
-                <div class="info-value" id="harumi-thoughts">--</div>
-            </div>
+        <div class="hud-footer">
+            <div>状态数据自动更新 · 恋爱主题 HUD</div>
+            <div>© HeartLink Interface</div>
         </div>
     </div>
 </div>
@@ -232,7 +300,7 @@
         let keys = Array.isArray(path) ? path : path.split('.');
         let current = obj;
         for (let i = 0; i < keys.length; i++) {
-            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+            if (current === undefined || current === null || typeof current !== 'object' || !Object.prototype.hasOwnProperty.call(current, keys[i])) {
                 return defaultValue;
             }
             current = current[keys[i]];
@@ -247,14 +315,21 @@
                     return actualValue;
                 }
                 return String(actualValue);
-            } else {
-                return defaultValue;
             }
+            return defaultValue;
         }
         if (typeof current === 'boolean') {
             return current;
         }
         return String(current);
+    }
+
+    function clampHeartValue(value) {
+        const numeric = Number(value);
+        if (Number.isNaN(numeric)) {
+            return null;
+        }
+        return Math.min(100, Math.max(0, Math.round(numeric)));
     }
 
     async function initDisplay() {
@@ -276,8 +351,10 @@
             const harumiOutfitElement = document.getElementById('harumi-outfit');
             const harumiPoseElement = document.getElementById('harumi-pose');
             const harumiThoughtsElement = document.getElementById('harumi-thoughts');
+            const harumiHeartValueElement = document.getElementById('harumi-heart-value');
+            const harumiHeartFillElement = document.getElementById('harumi-heart-fill');
 
-            if (characterData.hasOwnProperty('世界')) {
+            if (Object.prototype.hasOwnProperty.call(characterData, '世界')) {
                 const worldTime = SafeGetValue(characterData, '世界.当前时间', '--');
                 const worldLocation = SafeGetValue(characterData, '世界.当前地点', '--');
 
@@ -285,14 +362,24 @@
                 if (worldLocationElement) worldLocationElement.innerText = worldLocation;
             }
 
-            if (characterData.hasOwnProperty('晴美')) {
+            if (Object.prototype.hasOwnProperty.call(characterData, '晴美')) {
                 const outfit = SafeGetValue(characterData, '晴美.当前着装', '--');
                 const pose = SafeGetValue(characterData, '晴美.当前姿势', '--');
                 const thoughts = SafeGetValue(characterData, '晴美.当前想法', '--');
+                const heartRaw = SafeGetValue(characterData, '晴美.心动值', '--');
+                const heartValue = clampHeartValue(heartRaw);
 
                 if (harumiOutfitElement) harumiOutfitElement.innerText = outfit;
                 if (harumiPoseElement) harumiPoseElement.innerText = pose;
                 if (harumiThoughtsElement) harumiThoughtsElement.innerText = thoughts;
+
+                if (heartValue === null) {
+                    if (harumiHeartValueElement) harumiHeartValueElement.innerText = '--';
+                    if (harumiHeartFillElement) harumiHeartFillElement.style.width = '0%';
+                } else {
+                    if (harumiHeartValueElement) harumiHeartValueElement.innerText = `${heartValue}`;
+                    if (harumiHeartFillElement) harumiHeartFillElement.style.width = `${heartValue}%`;
+                }
             }
         } catch (error) {
             document.getElementById('status-card').innerHTML = `<p style='color:red; padding:20px; text-align:center;'>加载出错: ${error.message}</p>`;
