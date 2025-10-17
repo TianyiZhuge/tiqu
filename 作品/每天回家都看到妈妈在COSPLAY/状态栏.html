@@ -355,6 +355,50 @@
             border-radius: 999px;
             font-weight: 600;
         }
+        .social-rewards {
+            border-top: 1px solid rgba(255, 193, 113, 0.25);
+            padding-top: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .rewards-title {
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .reward-item {
+            background: linear-gradient(135deg, rgba(255, 193, 113, 0.08) 0%, rgba(255, 138, 167, 0.08) 100%);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 193, 113, 0.2);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .reward-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .reward-author {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #ff8c42;
+        }
+        .reward-message {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+        .reward-amount {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #ff8c42;
+            white-space: nowrap;
+        }
         .social-comments {
             border-top: 1px solid rgba(200, 121, 255, 0.18);
             padding-top: 12px;
@@ -688,6 +732,47 @@
 
                 postElem.appendChild(metrics);
 
+                if (rewards.length > 0) {
+                    const rewardsWrap = document.createElement('div');
+                    rewardsWrap.className = 'social-rewards';
+
+                    const rewardsTitle = document.createElement('div');
+                    rewardsTitle.className = 'rewards-title';
+                    rewardsTitle.innerText = `打赏 · ${formatNumber(rewardCount)}人 · ¥${formatNumber(rewardTotal, '0')}`;
+                    rewardsWrap.appendChild(rewardsTitle);
+
+                    rewards.forEach(reward => {
+                        const rewardItem = document.createElement('div');
+                        rewardItem.className = 'reward-item';
+
+                        const rewardLeft = document.createElement('div');
+                        rewardLeft.className = 'reward-left';
+
+                        const author = document.createElement('span');
+                        author.className = 'reward-author';
+                        author.innerText = reward?.['打赏人'] || '匿名粉丝';
+
+                        const message = document.createElement('p');
+                        message.className = 'reward-message';
+                        message.innerText = reward?.['留言'] || '';
+
+                        rewardLeft.appendChild(author);
+                        if (reward?.['留言']) {
+                            rewardLeft.appendChild(message);
+                        }
+
+                        const amount = document.createElement('span');
+                        amount.className = 'reward-amount';
+                        amount.innerText = `¥${formatNumber(reward?.['金额'], '0')}`;
+
+                        rewardItem.appendChild(rewardLeft);
+                        rewardItem.appendChild(amount);
+                        rewardsWrap.appendChild(rewardItem);
+                    });
+
+                    postElem.appendChild(rewardsWrap);
+                }
+
                 const comments = filterObjectArray(post?.['评论列表']);
                 if (comments.length > 0) {
                     const commentsWrap = document.createElement('div');
@@ -695,7 +780,7 @@
 
                     const commentsTitle = document.createElement('div');
                     commentsTitle.className = 'comments-title';
-                    commentsTitle.innerText = `评论 · ${formatNumber(comments.length)}`;
+                    commentsTitle.innerText = '热门评论';
                     commentsWrap.appendChild(commentsTitle);
 
                     comments.forEach(comment => {
