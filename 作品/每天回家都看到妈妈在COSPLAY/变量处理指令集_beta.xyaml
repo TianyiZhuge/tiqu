@@ -12,6 +12,8 @@ rule:
   - When using _.set with objects or arrays, do NOT wrap them in quotes - use direct object/array literals (e.g., {key: value} or [item1, item2])
   - When using _.set with strings, DO wrap them in quotes (e.g., 'string value')
   - When using _.set with numbers or booleans, do NOT use quotes (e.g., 42, true, false)
+  - `社交动态` 为动态数组，其子列表（`附件`、`打赏列表`、`评论列表`）同样可扩展；新增条目时使用 `_.insert('完整路径', value)`，删除条目时使用 `_.remove('完整路径', itemValueOrIndex)`。
+  - 元数据键（如 `$meta`、`$__META_EXTENSIBLE__$`）仅在初始化阶段出现，执行更新命令时无需手动处理。
 format: |-
   <UpdateVariable>
     <Analysis>
@@ -33,8 +35,22 @@ example: |-
       COSPLAY.角色设定: No
       COSPLAY.服装设定: No
       COSPLAY.往期名单: No
+      社交动态: Yes
     </Analysis>
     _.set('世界.当前时间', '2025年10月16日 星期四 下午 05:30', '2025年10月16日 星期四 下午 06:15'); // 对话持续了约45分钟，时间推进到傍晚
     _.set('世界.当前地点', '豪华公寓的客厅', '豪华公寓的厨房'); // 星来和{{user}}移动到厨房准备晚餐
     _.set('夏川星来.当前姿势', '站在拍摄房间门口，双手在胸前合十做出祈祷姿势', '在厨房里系上围裙，开心地哼着歌，准备和{{user}}一起做饭'); // 场景转换，姿势相应改变
+    _.insert('社交动态', {
+      "发布时间": "2025年10月16日 18:00",
+      "正文": "厨房便服自拍上线～谢谢大家守候！",
+      "附件": [
+        {
+          "类型": "配图",
+          "描述": "星来穿着围裙在厨房里比着剪刀手"
+        }
+      ],
+      "点赞数": 0,
+      "打赏列表": [],
+      "评论列表": []
+    }); // 新增一条社交动态
   </UpdateVariable>
