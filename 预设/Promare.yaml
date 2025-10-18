@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://testingcf.jsdelivr.net/gh/StageDog/tavern_sync/dist/schema/preset.zh.json
+设置:
+  上下文长度: 409500
+  最大回复token数: 30000
+  流式传输: false
+  温度: 1
+  频率惩罚: 0
+  存在惩罚: 0
+  top_p: 1
+  压缩系统消息: false
+  推理强度: 中
+  请求思维链: true
+  请求图片: false
+  启用函数调用: false
+  启用网络搜索: false
+  允许发送图片: 禁用
+  允许发送视频: false
+  角色名称前缀: 默认
+
+锚点: {}
+
+提示词:
+  - 名称: 测试结束
+    启用: true
+    角色: 系统
+    文件: Promare\测试结束
+
+  - 名称: Main Prompt
+    启用: true
+    角色: 系统
+    文件: Promare\Main_Prompt
+
+  - id: 角色定义之前
+    启用: true
+
+  - id: 玩家描述
+    启用: true
+
+  - id: 角色描述
+    启用: true
+
+  - id: 角色性格
+    启用: true
+
+  - id: 情景
+    启用: true
+
+  - 名称: Enhance Definitions
+    启用: false
+    角色: 系统
+    文件: Promare\Enhance_Definitions
+
+  - 名称: Auxiliary Prompt
+    启用: true
+    角色: 系统
+    文件: Promare\Auxiliary_Prompt
+
+  - id: 角色定义之后
+    启用: true
+
+  - id: 对话示例
+    启用: true
+
+  - id: 聊天记录
+    启用: true
+
+  - 名称: Post-History Instructions
+    启用: true
+    角色: 系统
+    文件: Promare\Post-History_Instructions
+
+未添加的提示词: []
