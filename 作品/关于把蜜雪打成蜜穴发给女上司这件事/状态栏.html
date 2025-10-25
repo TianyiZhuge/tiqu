@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>陆清商 状态</title>
+    <style>
+        :root {
+            --primary: #d946ef;
+            --accent-pink: #ff6b9d;
+            --surface: #fdf4ff;
+            --surface-strong: #ffffff;
+            --border: rgba(217, 70, 239, 0.12);
+            --text-main: #2f3545;
+            --text-muted: #6f7390;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: transparent;
+            color: var(--text-main);
+            padding: 14px;
+        }
+        .status-card {
+            max-width: 960px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 40px rgba(217, 70, 239, 0.12);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .status-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .status-title h1 {
+            font-size: 1.6rem;
+            letter-spacing: 0.04em;
+            background: linear-gradient(135deg, #d946ef 0%, #ff6b9d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status-subtitle {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        .status-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            min-width: 240px;
+        }
+        .meta-item {
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid #f3d4f8;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .meta-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .panel-block {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid #f3d4f8;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #394165;
+            letter-spacing: 0.04em;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .info-card {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #f0e4f5;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+        .info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .metric-card {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #f0e4f5;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .metric-value {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .metric-value span {
+            display: inline-flex;
+        }
+        .metric-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #f3d4f8;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar-value {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent-pink) 100%);
+            transition: width 0.4s ease;
+            border-radius: 999px;
+        }
+        .text-group {
+            display: grid;
+            gap: 12px;
+        }
+        .text-item {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #f0e4f5;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .info-text {
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .error-tip {
+            color: #b83232;
+            background: #ffe9e9;
+            border: 1px solid #ffc9c9;
+            border-radius: 14px;
+            padding: 16px;
+            line-height: 1.6;
+        }
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .status-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
+            .status-meta {
+                width: 100%;
+            }
+            .metric-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .metric-value {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="status-card" id="status-card">
+    <header class="status-header">
+        <div class="status-title">
+            <h1>陆清商</h1>
+            <p class="status-subtitle">职场女强人的隐秘欲望</p>
+        </div>
+        <div class="status-meta">
+            <div class="meta-item">
+                <span class="meta-label">当前时间</span>
+                <span class="meta-value" id="current-time">N/A</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">当前地点</span>
+                <span class="meta-value" id="current-location">N/A</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="panel-block">
+        <h3 class="panel-title">关系状态</h3>
+        <div class="metric-card">
+            <div class="metric-header">
+                <span class="metric-label">好感度</span>
+                <span class="metric-value">
+                    <span id="affection">0</span>
+                    <span class="metric-desc" id="affection-desc"></span>
+                </span>
+            </div>
+            <div class="progress-bar-container">
+                <div id="affection-bar" class="progress-bar-value" style="width: 0%;"></div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div class="info-card">
+                <span class="info-label">关系状态</span>
+                <span class="info-value" id="relationship">N/A</span>
+            </div>
+            <div class="info-card">
+                <span class="info-label">调教状态</span>
+                <span class="info-value" id="training-status">N/A</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel-block">
+        <h3 class="panel-title">当前状态</h3>
+        <div class="text-group">
+            <div class="text-item">
+                <span class="info-label">当前着装</span>
+                <p class="info-text" id="outfit">N/A</p>
+            </div>
+            <div class="text-item">
+                <span class="info-label">当前姿势</span>
+                <p class="info-text" id="pose">N/A</p>
+            </div>
+            <div class="text-item">
+                <span class="info-label">内心想法</span>
+                <p class="info-text" id="thoughts">N/A</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function SafeGetValue(obj, path, defaultValue = "N/A") {
+        let keys = Array.isArray(path) ? path : path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+                return defaultValue;
+            }
+            current = current[keys[i]];
+        }
+        if (current === undefined || current === null) {
+            return defaultValue;
+        }
+        if (Array.isArray(current)) {
+            if (current.length > 0) {
+                const actualValue = current[0];
+                if (typeof actualValue === 'boolean') {
+                    return actualValue;
+                }
+                return String(actualValue);
+            } else {
+                return defaultValue;
+            }
+        }
+        if (typeof current === 'boolean') {
+            return current;
+        }
+        if (typeof current === 'number') {
+            return current;
+        }
+        if (typeof current === 'string') {
+            return current;
+        }
+        return JSON.stringify(current);
+    }
+
+    function updateProgressBar(barId, valueMainId, valueDescId, rawValue, min = 0, max = 100, color) {
+        const progressBar = document.getElementById(barId);
+        const valueMainDisplay = document.getElementById(valueMainId);
+        const valueDescDisplay = document.getElementById(valueDescId);
+        if (!progressBar || !valueMainDisplay) {
+            return;
+        }
+        let numericValue = parseFloat(rawValue);
+        if (isNaN(numericValue)) {
+            numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]/g, ''));
+        }
+        if (!isNaN(numericValue)) {
+            valueMainDisplay.innerText = numericValue;
+        } else {
+            valueMainDisplay.innerText = rawValue;
+        }
+        if (valueDescDisplay) {
+            valueDescDisplay.innerText = '';
+        }
+        if (!isNaN(numericValue)) {
+            numericValue = Math.max(min, Math.min(max, numericValue));
+            const range = max - min;
+            const percentage = range === 0 ? (numericValue >= max ? 100 : 0) : ((numericValue - min) / range) * 100;
+            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            if (color) {
+                progressBar.style.background = color;
+            }
+        }
+    }
+
+    async function initDisplay() {
+        try {
+            const messages = await getChatMessages(getCurrentMessageId());
+            if (!messages || messages.length === 0 || !messages[0].data) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (messages empty)</div>";
+                return;
+            }
+            const gameData = messages[0].data;
+            const characterData = gameData.stat_data;
+            if (!characterData) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (characterData missing)</div>";
+                return;
+            }
+
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const locationElem = document.getElementById('current-location');
+            if (locationElem) locationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            updateProgressBar(
+                'affection-bar',
+                'affection',
+                'affection-desc',
+                SafeGetValue(characterData, '陆清商.好感度'),
+                0, 100,
+                'linear-gradient(90deg, #d946ef 0%, #ff6b9d 100%)'
+            );
+
+            const relationshipElem = document.getElementById('relationship');
+            if (relationshipElem) relationshipElem.innerText = SafeGetValue(characterData, '陆清商.关系状态');
+
+            const trainingStatusElem = document.getElementById('training-status');
+            if (trainingStatusElem) trainingStatusElem.innerText = SafeGetValue(characterData, '陆清商.调教状态');
+
+            const outfitElem = document.getElementById('outfit');
+            if (outfitElem) outfitElem.innerText = SafeGetValue(characterData, '陆清商.当前着装');
+
+            const poseElem = document.getElementById('pose');
+            if (poseElem) poseElem.innerText = SafeGetValue(characterData, '陆清商.当前姿势');
+
+            const thoughtsElem = document.getElementById('thoughts');
+            if (thoughtsElem) thoughtsElem.innerText = SafeGetValue(characterData, '陆清商.当前想法');
+
+        } catch (error) {
+            document.getElementById('status-card').innerHTML = `<div class='error-tip'>状态栏加载出错: ${error.message}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDisplay);
+</script>
+</body>
+</html>
