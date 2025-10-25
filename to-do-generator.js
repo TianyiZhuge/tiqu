@@ -854,7 +854,6 @@ function generateMarkdown() {
     if (noMVU) {
         md += '**状态：** 不需要\n\n';
     } else {
-
     md += '**组件选择：**\n';
     md += `- [${document.getElementById('mvu1').checked ? 'x' : ' '}] 变量初始化条目（稳定版）\n`;
     md += `- [${document.getElementById('mvu2').checked ? 'x' : ' '}] 变量初始化条目（Beta版）\n`;
@@ -917,6 +916,7 @@ function generateMarkdown() {
 
     md += '**参考模板：** `MVU组件包/` 目录下的相关文件\n\n';
     md += '---\n\n';
+    }
 
     // 额外需求
     md += '## 额外需求\n\n';
@@ -1059,7 +1059,6 @@ function generateMarkdown() {
 
     // 下载文件
     downloadMarkdown(md);
-}
 }
 
 // 下载 Markdown 文件
