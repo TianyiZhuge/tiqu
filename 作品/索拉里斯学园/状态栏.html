@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>索拉里斯学园 状态</title>
+    <style>
+        :root {
+            --primary: #5b8fd8;
+            --accent-blue: #74b9ff;
+            --accent-purple: #a29bfe;
+            --surface: #f5f8fc;
+            --surface-strong: #ffffff;
+            --border: rgba(91, 143, 216, 0.15);
+            --text-main: #2f3545;
+            --text-muted: #6f7390;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: transparent;
+            color: var(--text-main);
+            padding: 14px;
+        }
+        .status-card {
+            max-width: 960px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 40px rgba(91, 143, 216, 0.12);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .status-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .status-title h1 {
+            font-size: 1.6rem;
+            letter-spacing: 0.04em;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .status-subtitle {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        .status-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            min-width: 240px;
+        }
+        .meta-item {
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid #e3ebf5;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .meta-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .tab-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px;
+            background: #e8f0fa;
+            border-radius: 14px;
+        }
+        .tab-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+        .tab-strip::-webkit-scrollbar-thumb {
+            background: rgba(91, 143, 216, 0.3);
+            border-radius: 999px;
+        }
+        .tab-button {
+            flex: none;
+            border: none;
+            background: transparent;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-button:hover {
+            color: var(--primary);
+            background: rgba(91, 143, 216, 0.08);
+        }
+        .tab-button.active {
+            background: var(--surface-strong);
+            color: var(--primary);
+            box-shadow: 0 6px 16px rgba(91, 143, 216, 0.18);
+        }
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .tab-panel.active {
+            display: flex;
+        }
+        .panel-block {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid #e3ebf5;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #394165;
+            letter-spacing: 0.04em;
+        }
+        .metric-card {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e1e8f2;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .metric-value {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .metric-value span {
+            display: inline-flex;
+        }
+        .metric-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e3f0ff;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar-value {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent-purple) 100%);
+            transition: width 0.4s ease;
+            border-radius: 999px;
+        }
+        .text-group {
+            display: grid;
+            gap: 12px;
+        }
+        .text-item {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e1e8f2;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+        .info-text {
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .list-container {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e1e8f2;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .list-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--border);
+        }
+        .list-content {
+            color: var(--text-main);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .list-item {
+            padding: 6px 0;
+            border-bottom: 1px dotted var(--border);
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .empty-tip {
+            color: #98a0c2;
+            text-align: center;
+            padding: 16px 12px;
+            font-size: 0.95rem;
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e1e8f2;
+        }
+        .error-tip {
+            color: #b83232;
+            background: #ffe9e9;
+            border: 1px solid #ffc9c9;
+            border-radius: 14px;
+            padding: 16px;
+            line-height: 1.6;
+        }
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .status-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
+            .status-meta {
+                width: 100%;
+            }
+            .metric-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .metric-value {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="status-card" id="status-card">
+    <header class="status-header">
+        <div class="status-title">
+            <h1>索拉里斯学园</h1>
+            <p class="status-subtitle">青春恋爱物语</p>
+        </div>
+        <div class="status-meta">
+            <div class="meta-item">
+                <span class="meta-label">当前时间</span>
+                <span class="meta-value" id="current-time">N/A</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">当前地点</span>
+                <span class="meta-value" id="current-location">N/A</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="tab-strip" id="tab-strip">
+        <button class="tab-button active" onclick="toggleSection('world-tab')">世界</button>
+    </div>
+
+    <div id="world-tab" class="tab-panel active">
+        <div class="panel-block">
+            <h3 class="panel-title">当前场景</h3>
+            <div class="text-group">
+                <div class="text-item">
+                    <span class="info-label">时间</span>
+                    <p class="info-text" id="world-time-detail">N/A</p>
+                </div>
+                <div class="text-item">
+                    <span class="info-label">地点</span>
+                    <p class="info-text" id="world-location-detail">N/A</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="scene-characters-container"></div>
+    </div>
+
+    <div id="character-tabs-container"></div>
+</div>
+
+<script>
+    function SafeGetValue(obj, path, defaultValue = "N/A") {
+        let keys = Array.isArray(path) ? path : path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+                return defaultValue;
+            }
+            current = current[keys[i]];
+        }
+        if (current === undefined || current === null) {
+            return defaultValue;
+        }
+        if (Array.isArray(current)) {
+            if (current.length > 0) {
+                const actualValue = current[0];
+                if (typeof actualValue === 'boolean') {
+                    return actualValue;
+                }
+                return String(actualValue);
+            } else {
+                return defaultValue;
+            }
+        }
+        if (typeof current === 'boolean') {
+            return current;
+        }
+        if (typeof current === 'number') {
+            return current;
+        }
+        if (typeof current === 'string') {
+            return current;
+        }
+        return JSON.stringify(current);
+    }
+
+    function updateProgressBar(barId, valueMainId, valueDescId, rawValue, min = 0, max = 100, color) {
+        const progressBar = document.getElementById(barId);
+        const valueMainDisplay = document.getElementById(valueMainId);
+        const valueDescDisplay = document.getElementById(valueDescId);
+        if (!progressBar || !valueMainDisplay) {
+            return;
+        }
+        let numericValue = parseFloat(rawValue);
+        if (isNaN(numericValue)) {
+            numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]/g, ''));
+        }
+        if (!isNaN(numericValue)) {
+            valueMainDisplay.innerText = numericValue;
+        } else {
+            valueMainDisplay.innerText = rawValue;
+        }
+        if (valueDescDisplay) {
+            let desc = '';
+            if (!isNaN(numericValue)) {
+                if (numericValue < 10) desc = '陌生';
+                else if (numericValue < 30) desc = '相识';
+                else if (numericValue < 50) desc = '熟悉';
+                else if (numericValue < 70) desc = '信赖';
+                else if (numericValue < 90) desc = '倾心';
+                else desc = '深爱';
+            }
+            valueDescDisplay.innerText = desc;
+        }
+        if (!isNaN(numericValue)) {
+            numericValue = Math.max(min, Math.min(max, numericValue));
+            const range = max - min;
+            const percentage = range === 0 ? (numericValue >= max ? 100 : 0) : ((numericValue - min) / range) * 100;
+            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            progressBar.style.backgroundColor = color ? color : '#5b8fd8';
+        }
+    }
+
+    function toggleSection(sectionId) {
+        const allPanels = document.querySelectorAll('.tab-panel');
+        const allButtons = document.querySelectorAll('.tab-button');
+        allPanels.forEach(panel => panel.classList.remove('active'));
+        allButtons.forEach(button => button.classList.remove('active'));
+        const targetPanel = document.getElementById(sectionId);
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+        }
+        const clickedButton = event.target;
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
+    }
+
+    async function initDisplay() {
+        try {
+            const messages = await getChatMessages(getCurrentMessageId());
+            if (!messages || messages.length === 0 || !messages[0].data) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (messages empty)</div>";
+                return;
+            }
+            const gameData = messages[0].data;
+            const characterData = gameData.stat_data;
+            if (!characterData) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (characterData missing)</div>";
+                return;
+            }
+
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const locationElem = document.getElementById('current-location');
+            if (locationElem) locationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            const worldTimeDetailElem = document.getElementById('world-time-detail');
+            if (worldTimeDetailElem) worldTimeDetailElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const worldLocationDetailElem = document.getElementById('world-location-detail');
+            if (worldLocationDetailElem) worldLocationDetailElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            const sceneCharactersContainer = document.getElementById('scene-characters-container');
+            if (sceneCharactersContainer && characterData['世界'] && characterData['世界']['当前场景角色列表']) {
+                const sceneCharacters = characterData['世界']['当前场景角色列表'];
+                let sceneCharactersHtml = '';
+
+                for (const charName in sceneCharacters) {
+                    if (!Object.prototype.hasOwnProperty.call(sceneCharacters, charName)) continue;
+
+                    const charData = sceneCharacters[charName];
+                    const outfit = typeof charData['当前着装'] === 'string' ? charData['当前着装'] : 'N/A';
+                    const pose = typeof charData['当前姿势'] === 'string' ? charData['当前姿势'] : 'N/A';
+                    const thoughts = typeof charData['当前想法'] === 'string' ? charData['当前想法'] : 'N/A';
+
+                    sceneCharactersHtml += `
+                        <div class="panel-block">
+                            <h3 class="panel-title">场景角色：${charName}</h3>
+                            <div class="text-group">
+                                <div class="text-item">
+                                    <span class="info-label">当前着装</span>
+                                    <p class="info-text">${outfit}</p>
+                                </div>
+                                <div class="text-item">
+                                    <span class="info-label">当前姿势</span>
+                                    <p class="info-text">${pose}</p>
+                                </div>
+                                <div class="text-item">
+                                    <span class="info-label">当前想法</span>
+                                    <p class="info-text">${thoughts}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                sceneCharactersContainer.innerHTML = sceneCharactersHtml;
+            }
+
+            const tabStrip = document.getElementById('tab-strip');
+            const characterTabsContainer = document.getElementById('character-tabs-container');
+
+            if (characterData['角色列表']) {
+                const characterList = characterData['角色列表'];
+                let characterTabsHtml = '';
+
+                for (const charName in characterList) {
+                    if (!Object.prototype.hasOwnProperty.call(characterList, charName)) continue;
+
+                    const charData = characterList[charName];
+                    const affection = typeof charData['好感度'] === 'number' ? charData['好感度'] : 0;
+                    const memories = Array.isArray(charData['记忆事件']) ? charData['记忆事件'] : [];
+
+                    const tabId = `char-tab-${charName}`;
+
+                    if (tabStrip) {
+                        const tabButton = document.createElement('button');
+                        tabButton.className = 'tab-button';
+                        tabButton.textContent = charName;
+                        tabButton.onclick = function() { toggleSection(tabId); };
+                        tabStrip.appendChild(tabButton);
+                    }
+
+                    let affectionDesc = '';
+                    if (affection < 10) affectionDesc = '陌生';
+                    else if (affection < 30) affectionDesc = '相识';
+                    else if (affection < 50) affectionDesc = '熟悉';
+                    else if (affection < 70) affectionDesc = '信赖';
+                    else if (affection < 90) affectionDesc = '倾心';
+                    else affectionDesc = '深爱';
+
+                    let memoriesHtml = '';
+                    if (memories.length > 0) {
+                        memories.forEach((memory, index) => {
+                            memoriesHtml += `<div class="list-item">${index + 1}. ${memory}</div>`;
+                        });
+                    } else {
+                        memoriesHtml = '<div class="empty-tip">暂无记忆事件</div>';
+                    }
+
+                    characterTabsHtml += `
+                        <div id="${tabId}" class="tab-panel">
+                            <div class="panel-block">
+                                <h3 class="panel-title">${charName}的好感度</h3>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <span class="metric-label">好感度</span>
+                                        <span class="metric-value">
+                                            <span>${affection}</span>
+                                            <span class="metric-desc">${affectionDesc}</span>
+                                        </span>
+                                    </div>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-value" style="width: ${affection}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-block">
+                                <h3 class="panel-title">记忆事件</h3>
+                                <div class="list-container">
+                                    <div class="list-content">${memoriesHtml}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (characterTabsContainer) {
+                    characterTabsContainer.innerHTML = characterTabsHtml;
+                }
+            }
+
+        } catch (error) {
+            document.getElementById('status-card').innerHTML = `<div class='error-tip'>状态栏加载出错: ${error.message}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDisplay);
+</script>
+</body>
+</html>
