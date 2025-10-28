@@ -215,8 +215,8 @@
 <div class="status-card" id="status-card">
     <header class="status-header">
         <div class="status-title">
-            <h1>网恋对象竟是自己的女儿</h1>
-            <p class="status-subtitle">双重身份下的禁忌之恋</p>
+            <h1>父女二人的日常</h1>
+            <p class="status-subtitle">温馨日常中的禁忌情感</p>
         </div>
         <div class="status-meta">
             <div class="meta-item">
@@ -231,22 +231,6 @@
     </header>
 
     <section>
-        <div class="panel-block">
-            <h3 class="panel-title">网恋进度</h3>
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span class="metric-label">与"奈奈"的熟络度</span>
-                    <span class="metric-value">
-                        <span id="intimacy">0</span>
-                        <span class="metric-desc" id="intimacy-desc"></span>
-                    </span>
-                </div>
-                <div class="progress-bar-container">
-                    <div id="intimacy-bar" class="progress-bar-value" style="width: 0%;"></div>
-                </div>
-            </div>
-        </div>
-
         <div class="panel-block">
             <h3 class="panel-title">心奈的状态</h3>
             <div class="text-group">
@@ -350,14 +334,6 @@
 
             const locationElem = document.getElementById('current-location');
             if (locationElem) locationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
-
-            updateProgressBar(
-                'intimacy-bar',
-                'intimacy',
-                'intimacy-desc',
-                SafeGetValue(characterData, '网恋.熟络度'),
-                0, 100, '#ff6b9d'
-            );
 
             const outfitElem = document.getElementById('kokona-outfit');
             if (outfitElem) outfitElem.innerText = SafeGetValue(characterData, '心奈.当前着装');
