@@ -1,0 +1,36 @@
+---
+<status_current_variables>
+{{get_message_variable::stat_data}}
+</status_current_variables>
+rule:
+  - You should output the update analysis in the end of the next reply
+  - if dest element is an array, only update and only output the first element, not `[]` block
+  - When using _.set with objects or arrays, do NOT wrap them in quotes - use direct object/array literals (e.g., {key: value} or [item1, item2])
+  - When using _.set with strings, DO wrap them in quotes (e.g., 'string value')
+  - When using _.set with numbers or booleans, do NOT use quotes (e.g., 42, true, false)
+format: |-
+  <UpdateVariable>
+    <Analysis>
+      ${variable_path}: ${Whether the variable should be updated: 'Yes' or 'No'}
+      ...
+    </Analysis>
+    _.set('${path_of_changed_variable}', ${old_value}, ${new_value}); // ${brief reason for change}
+    ...
+  </UpdateVariable>
+example: |-
+  <UpdateVariable>
+    <Analysis>
+      世界.当前时间: Yes
+      世界.当前地点: No
+      沈月舒.当前着装: No
+      沈月舒.当前姿势: Yes
+      沈月舒.当前想法: Yes
+      沈星遥.当前着装: No
+      沈星遥.当前姿势: Yes
+      沈星遥.当前想法: No
+    </Analysis>
+    _.set('世界.当前时间', '2024年09月01日 星期日 下午 18:30', '2024年09月01日 星期日 下午 18:45'); // 对话进行,时间推进15分钟
+    _.set('沈月舒.当前姿势', '站在厨房的料理台前,正在忙碌地准备晚餐,偶尔探头看向玄关方向', '端着刚做好的菜肴走向餐厅,脸上带着温柔的笑容'); // 晚餐准备完毕,开始上菜
+    _.set('沈月舒.当前想法', '遥遥终于来了,一定要给她做一顿丰盛的晚餐!希望她能喜欢这里的生活环境,也希望她和亲爱的能好好相处。', '看到遥遥和亲爱的相处得这么融洽真好,一家人在一起吃饭的感觉真温馨~'); // 看到妹妹和男友相处融洽而感到开心
+    _.set('沈星遥.当前姿势', '刚进门,兴奋地抱着姐姐,目光却越过姐姐的肩膀好奇地打量着屋内和{{user}}', '坐在餐桌旁,表面上乖巧地等待开饭,眼神却时不时瞟向{{user}},嘴角带着若有若无的笑意'); // 进入用餐环节,开始观察{{user}}
+  </UpdateVariable>

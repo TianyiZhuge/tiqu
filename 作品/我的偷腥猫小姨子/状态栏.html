@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的偷腥猫小姨子 状态</title>
+    <style>
+        :root {
+            --primary: #d16ba5;
+            --primary-strong: #b2498e;
+            --secondary: #7f8de1;
+            --accent-warm: #f6abbd;
+            --accent-cool: #a6d6f2;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-strong: rgba(255, 255, 255, 0.97);
+            --border: rgba(209, 107, 165, 0.16);
+            --border-strong: rgba(209, 107, 165, 0.32);
+            --text-main: #2d2435;
+            --text-muted: #726179;
+            --glass-blur: saturate(180%) blur(22px);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: transparent;
+            color: var(--text-main);
+            padding: 26px 18px;
+        }
+        .status-card {
+            max-width: 1180px;
+            margin: 0 auto;
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 242, 247, 0.95), rgba(255, 232, 236, 0.92));
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: none;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            overflow: hidden;
+        }
+        .status-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: none;
+            pointer-events: none;
+        }
+        .status-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 32px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 107, 157, 0.12);
+        }
+        .status-title {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .status-subtitle {
+            font-size: 0.8rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .status-title h1 {
+            font-size: 1.8rem;
+            letter-spacing: 0.04em;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .status-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px 32px;
+            align-items: center;
+        }
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .meta-icon {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(209, 107, 165, 0.12);
+            border: 1px solid transparent;
+        }
+        .meta-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--primary-strong);
+        }
+        .meta-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .meta-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.16em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .characters-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .character-card {
+            position: relative;
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid rgba(209, 107, 165, 0.18);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 20px 45px rgba(209, 107, 165, 0.14);
+            overflow: hidden;
+        }
+        .character-card::before {
+            content: "";
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(127, 141, 225, 0.2);
+            filter: blur(0px);
+            pointer-events: none;
+        }
+        .character-card.shen-xingyao::before {
+            background: rgba(209, 107, 165, 0.16);
+        }
+        .character-card.shen-yuexhu {
+            border-color: rgba(127, 141, 225, 0.32);
+        }
+        .character-card.shen-xingyao {
+            border-color: rgba(209, 107, 165, 0.32);
+        }
+        .character-name {
+            position: relative;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--secondary);
+            text-align: left;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(127, 141, 225, 0.2);
+        }
+        .character-card.shen-xingyao .character-name {
+            color: var(--primary);
+            border-bottom-color: rgba(209, 107, 165, 0.2);
+        }
+        .character-name::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--secondary), rgba(127, 141, 225, 0));
+        }
+        .character-card.shen-xingyao .character-name::after {
+            background: linear-gradient(90deg, var(--primary), rgba(210, 107, 165, 0));
+        }
+        .character-info {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .info-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(244, 227, 238, 0.92));
+            border-radius: 16px;
+            border: 1px solid rgba(209, 107, 165, 0.14);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 12px 28px rgba(45, 36, 60, 0.08);
+            backdrop-filter: var(--glass-blur);
+        }
+        .info-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            letter-spacing: 0.14em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 1rem;
+            color: var(--text-main);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .error-tip {
+            color: #d63031;
+            background: #ffe9e9;
+            border: 1px solid #ffc9c9;
+            border-radius: 14px;
+            padding: 20px;
+            line-height: 1.6;
+            text-align: center;
+        }
+        @media (max-width: 900px) {
+            .status-card {
+                padding: 26px;
+            }
+            .status-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .status-meta {
+                width: 100%;
+            }
+        }
+        @media (max-width: 640px) {
+            body {
+                padding: 18px 12px;
+            }
+            .status-card {
+                padding: 22px;
+                border-radius: 20px;
+            }
+            .status-title h1 {
+                font-size: 1.8rem;
+            }
+            .meta-item {
+                padding: 14px 16px;
+            }
+            .meta-value {
+                font-size: 1rem;
+            }
+            .character-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="status-card" id="status-card">
+    <header class="status-header">
+        <div class="status-title">
+            <span class="status-subtitle">Status Overview</span>
+            <h1>我的偷腥猫小姨子</h1>
+        </div>
+        <div class="status-meta">
+            <div class="meta-item">
+                <div class="meta-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22a10 10 0 1 1 10-10A10.011 10.011 0 0 1 12 22Zm0-18a8 8 0 1 0 8 8a8.009 8.009 0 0 0-8-8Zm.75 4v3.189l2.744 1.646a1 1 0 1 1-1.008 1.722l-3.25-1.95A1 1 0 0 1 11 11V8a1 1 0 0 1 2 0Z"/>
+                    </svg>
+                </div>
+                <div class="meta-content">
+                    <span class="meta-label">当前时间</span>
+                    <span class="meta-value" id="world-time">N/A</span>
+                </div>
+            </div>
+            <div class="meta-item">
+                <div class="meta-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22a1 1 0 0 1-.832-.444C10.307 20.337 6 13.755 6 10a6 6 0 1 1 12 0c0 3.755-4.307 10.337-5.168 11.556A1 1 0 0 1 12 22Zm0-12a2 2 0 1 0 2 2a2 2 0 0 0-2-2Z"/>
+                    </svg>
+                </div>
+                <div class="meta-content">
+                    <span class="meta-label">当前地点</span>
+                    <span class="meta-value" id="world-location">N/A</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="characters-container">
+        <div class="character-card shen-yuexhu">
+            <h2 class="character-name">沈月舒</h2>
+            <div class="character-info">
+                <div class="info-item">
+                    <span class="info-label">当前着装</span>
+                    <p class="info-value" id="yuexhu-outfit">N/A</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前姿势</span>
+                    <p class="info-value" id="yuexhu-pose">N/A</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前想法</span>
+                    <p class="info-value" id="yuexhu-thoughts">N/A</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="character-card shen-xingyao">
+            <h2 class="character-name">沈星遥</h2>
+            <div class="character-info">
+                <div class="info-item">
+                    <span class="info-label">当前着装</span>
+                    <p class="info-value" id="xingyao-outfit">N/A</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前姿势</span>
+                    <p class="info-value" id="xingyao-pose">N/A</p>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前想法</span>
+                    <p class="info-value" id="xingyao-thoughts">N/A</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function SafeGetValue(obj, path, defaultValue = "N/A") {
+        let keys = Array.isArray(path) ? path : path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+                return defaultValue;
+            }
+            current = current[keys[i]];
+        }
+        if (current === undefined || current === null) {
+            return defaultValue;
+        }
+        if (Array.isArray(current)) {
+            if (current.length > 0) {
+                const actualValue = current[0];
+                if (typeof actualValue === 'boolean') {
+                    return actualValue;
+                }
+                return String(actualValue);
+            } else {
+                return defaultValue;
+            }
+        }
+        if (typeof current === 'boolean') {
+            return current;
+        }
+        if (typeof current === 'number') {
+            return current;
+        }
+        if (typeof current === 'string') {
+            return current;
+        }
+        return JSON.stringify(current);
+    }
+
+    function updateProgressBar(barId, valueMainId, valueDescId, rawValue, min = 0, max = 100, color) {
+        const progressBar = document.getElementById(barId);
+        const valueMainDisplay = document.getElementById(valueMainId);
+        const valueDescDisplay = document.getElementById(valueDescId);
+        if (!progressBar || !valueMainDisplay) {
+            return;
+        }
+        let numericValue = parseFloat(rawValue);
+        if (isNaN(numericValue)) {
+            numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]/g, ''));
+        }
+        if (!isNaN(numericValue)) {
+            valueMainDisplay.innerText = numericValue;
+        } else {
+            valueMainDisplay.innerText = rawValue;
+        }
+        if (valueDescDisplay) {
+            valueDescDisplay.innerText = '';
+        }
+        if (!isNaN(numericValue)) {
+            numericValue = Math.max(min, Math.min(max, numericValue));
+            const range = max - min;
+            const percentage = range === 0 ? (numericValue >= max ? 100 : 0) : ((numericValue - min) / range) * 100;
+            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            progressBar.style.backgroundColor = color ? color : '#667eea';
+        }
+    }
+
+    function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = section.style.display === 'none' ? 'flex' : 'none';
+        }
+    }
+
+    async function initDisplay() {
+        try {
+            const messages = await getChatMessages(getCurrentMessageId());
+            if (!messages || messages.length === 0 || !messages[0].data) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (messages empty)</div>";
+                return;
+            }
+            const gameData = messages[0].data;
+            const characterData = gameData.stat_data;
+            if (!characterData) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (characterData missing)</div>";
+                return;
+            }
+
+            const worldTimeElem = document.getElementById('world-time');
+            if (worldTimeElem) worldTimeElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const worldLocationElem = document.getElementById('world-location');
+            if (worldLocationElem) worldLocationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            const yuexhuOutfitElem = document.getElementById('yuexhu-outfit');
+            if (yuexhuOutfitElem) yuexhuOutfitElem.innerText = SafeGetValue(characterData, '沈月舒.当前着装');
+
+            const yuexhuPoseElem = document.getElementById('yuexhu-pose');
+            if (yuexhuPoseElem) yuexhuPoseElem.innerText = SafeGetValue(characterData, '沈月舒.当前姿势');
+
+            const yuexhuThoughtsElem = document.getElementById('yuexhu-thoughts');
+            if (yuexhuThoughtsElem) yuexhuThoughtsElem.innerText = SafeGetValue(characterData, '沈月舒.当前想法');
+
+            const xingyaoOutfitElem = document.getElementById('xingyao-outfit');
+            if (xingyaoOutfitElem) xingyaoOutfitElem.innerText = SafeGetValue(characterData, '沈星遥.当前着装');
+
+            const xingyaoPoseElem = document.getElementById('xingyao-pose');
+            if (xingyaoPoseElem) xingyaoPoseElem.innerText = SafeGetValue(characterData, '沈星遥.当前姿势');
+
+            const xingyaoThoughtsElem = document.getElementById('xingyao-thoughts');
+            if (xingyaoThoughtsElem) xingyaoThoughtsElem.innerText = SafeGetValue(characterData, '沈星遥.当前想法');
+
+        } catch (error) {
+            document.getElementById('status-card').innerHTML = `<div class='error-tip'>状态栏加载出错: ${error.message}</div>`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDisplay);
+</script>
+</body>
+</html>
