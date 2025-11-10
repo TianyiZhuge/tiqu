@@ -746,12 +746,13 @@ function generateMarkdown() {
         md += '### ✅ 第四步：对话补充（可选）\n\n';
         md += `**对应角色：** ${document.getElementById('dialogueCharacter').value || '_[待填写]_'}\n\n`;
 
+        const dialogueScenes = document.getElementById('dialogueScenes').value;
         md += '**场景需求：**\n';
-        md += `- [${document.getElementById('scene1').checked ? 'x' : ' '}] 日常闲聊\n`;
-        md += `- [${document.getElementById('scene2').checked ? 'x' : ' '}] 紧张时刻\n`;
-        md += `- [${document.getElementById('scene3').checked ? 'x' : ' '}] 战斗场景\n`;
-        md += `- [${document.getElementById('scene4').checked ? 'x' : ' '}] 亲密互动\n`;
-        md += `- [${document.getElementById('scene5').checked ? 'x' : ' '}] 情绪波动（高兴/愤怒/悲伤）\n\n`;
+        if (dialogueScenes) {
+            md += '```\n' + dialogueScenes + '\n```\n\n';
+        } else {
+            md += '_[待填写]_\n\n';
+        }
 
         md += '**参考模板：** `基础模板/Z.4.对话补充.md`\n\n';
         md += '---\n\n';
@@ -914,6 +915,7 @@ function generateMarkdown() {
     md += 'creator: ""\n';
     md += 'character_version: ""\n\n';
     md += '# 主要字段映射\n';
+    md += '# 对话补充等额外设定应该放入 character_book，而不是使用 mes_example\n';
     md += 'fields:\n';
     md += '  description: 作品/' + workName + '/角色设定_主角名.xyaml\n';
     md += '  personality: ""\n';

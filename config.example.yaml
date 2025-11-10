@@ -7,6 +7,7 @@ creator: ""
 character_version: ""
 
 # 主要字段映射(空字符串表示该字段为空)
+# 对话补充等额外设定应该放入 character_book，而不是使用 mes_example
 fields:
   description: 作品/示例作品/角色设定.xyaml
   personality: ""
