@@ -8,7 +8,8 @@
       "mcp__browsermcp__browser_screenshot",
       "mcp__browsermcp__browser_press_key",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(iconv:*)"
     ],
     "deny": [],
     "ask": []
