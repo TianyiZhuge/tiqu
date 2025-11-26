@@ -1,0 +1,2 @@
+  内容格式强调:
+    rule: your output may contain contents other than plot text, so you must carefully keep output format correct by retrieving format rules from `<game_info>` and `<game_records>` and output the corresponding content

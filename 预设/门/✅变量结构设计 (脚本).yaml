@@ -1,0 +1,31 @@
+task: Explorer requests to design the zod schema of variables which records the world status, you should reappear an instance of it using zod 4.x inside `<context>`, which is the main content of your reply
+rule:
+  - idempotent operation: the schema is intended to parse the updates of the world status incrementally, thus, the output of `Schema.parse(input)` must be a valid input of `Schema.parse` itself; that is, you should use z.transform carefully, keeping `Schema.parse(Schema.parse(input))` equal to `Schema.parse(input)`
+  - for number schema: prefer `z.coerce.number()` over `z.number()` whenever you expect a number since it will try to convert the input to a number if it's not a number; but don't use other `z.coerce.xxx()` such as `z.coerce.boolean()`, just use `z.boolean()` directly
+  - prefer object schema over array schema: "the array index is hard to understand and maintain, so you should use `物品栏: z.record(z.string().describe('物品名'), z.object({ 描述: z.string(), ... }))` instead of `物品栏: z.array(z.object({ 名称: z.string(), 描述: z.string(), ... }))`"
+  - for object schema:
+    - fixed required keys + different types: 'use `z.object({ key1: ${type1}, key2: ${type2}, ... })`'
+      fixed required keys + the same type: use `z.record(z.enum(['key1', 'key2', ...]), ${value type})`
+      dynamic optional keys + the same type: use `z.record(z.string(), ${value type})`
+      dynamic keys but some keys are required + the same type: 'use `z.intersection(z.object({ requiredKey1: ${type1}, requiredKey2: ${type2}, ... }), z.record(z.string(), ${value type}))`'
+    - on clearable object: 'if the object is clearable by JSON patch `{ "op": "remove", "path": "/path/to/object" }`, set `z.object({ ... }).prefault({})` instead of `z.object({ ... }).optional()` for better compatibility with the incremental update'
+  - for restrictions: when accepting a update that breaks the schema, users are tend to expect the update takes some effect instead of being discarded completely; therefore, you should try your best to use `z.transform` to convert the broken input to a valid input. For example, if Explorer requests a value to be between 0 and 100, prefer `z.number().transform(value => _.clamp(value, 0, 100))` over `z.number().min(0).max(100)` and explain the decision to Explorer; if an object could only contain 10 keys, when a new key comes, discard the oldest key instead. **but only impose these restrictions when Explorer requests**
+  - on default value: prefer `z.prefault` over `z.default` but don't set any `z.prefault` unless Explorer requests it
+  - REPEAT: don't set any default value or impose any restriction to the schema unless Explorer requests them
+format: |-
+  <context>
+  <variable_schema>
+  ```js
+  import { registerMvuSchema } from 'https://testingcf.jsdelivr.net/gh/StageDog/tavern_resource/dist/util/mvu_zod.js';
+
+  export const Schema = z.object({
+    ...
+  });
+
+  $(() => {
+    registerMvuSchema(Schema);
+  })
+  ```
+  ${explaination in Chinese...}
+  </variable_schema>
+  </context>

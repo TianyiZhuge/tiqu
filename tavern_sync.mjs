@@ -60301,7 +60301,6 @@ const Config = strictObject({
     type: Config_type,
     name: schemas_string().describe('世界书/预设在酒馆中的名称'),
     file: schemas_string()
-        .regex(/^(?:(?:[a-zA-Z]:|\.|\.\.)?([\\/][^\\/]+)*|[^\\/]+)$/)
         .transform(string => (string.endsWith('.yaml') ? string : string + '.yaml'))
         .describe('世界书/预设的配置文件要提取到本地哪个文件中, 可以是绝对路径或相对于本文件的相对路径'),
     export_file: schemas_string()
@@ -60310,7 +60309,7 @@ const Config = strictObject({
         .describe('当使用 `node tavern_sync.mjs push 配置名称 -e` 导出能直接由酒馆界面导入的世界书/预设文件时, 要将它存放在哪个文件中; 不填则默认导出到世界书/预设配置文件的同目录下'),
 });
 const Settings = strictObject({
-    user_name: schemas_string().regex(/^\S+$/),
+    user_name: schemas_string().regex(/^\S+$/).optional(),
     configs: record(schemas_string(), Config),
 });
 
@@ -60334,7 +60333,6 @@ const settings_zh_Config = strictObject({
     酒馆中的名称: schemas_string()
         .describe('世界书/预设的配置文件要提取到本地哪个文件中, 可以是绝对路径或相对于本文件的相对路径'),
     本地文件路径: schemas_string()
-        .regex(/^(?:(?:[a-zA-Z]:|\.|\.\.)?([\\/][^\\/]+)*|[^\\/]+)$/)
         .transform(string => (string.endsWith('.yaml') ? string : string + '.yaml'))
         .describe('世界书/预设的配置文件要提取到本地哪个文件中, 可以是绝对路径或相对于本文件的相对路径'),
     导出文件路径: schemas_string()
@@ -60343,7 +60341,7 @@ const settings_zh_Config = strictObject({
         .describe('当使用 `node tavern_sync.mjs push 配置名称 -e` 导出能直接由酒馆界面导入的世界书/预设文件时, 要将它存放在哪个文件中; 不填则默认导出到世界书/预设配置文的同目录下'),
 });
 const settings_zh_Settings = strictObject({
-    user名称: schemas_string().regex(/^\S+$/),
+    user名称: schemas_string().regex(/^\S+$/).optional(),
     配置: record(schemas_string(), settings_zh_Config),
 });
 
@@ -60494,7 +60492,11 @@ function replace_raw_string(text) {
 ;// ./src/server/component/replace_user_name.ts
 
 function replace_user_name(text) {
-    return text?.replaceAll(get_settings().user_name, '<user>');
+    const user_name = get_settings().user_name;
+    if (user_name) {
+        return text?.replaceAll(user_name, '<user>');
+    }
+    return text;
 }
 
 // EXTERNAL MODULE: external "fs"
@@ -62364,10 +62366,13 @@ ${this.do_beautify_config(tavern_data, language)}`;
                     `如果想无视条目差异, 请在命令尾部添加 '-f' 或 '--force' 选项, 如: 'node tavern_sync.mjs pull 猴子打字机 -f'`);
             }
         }
-        const { result_data, files } = this.do_pull(typeof local_data === 'string' ? null : local_data, tavern_data, {
+        const { result_data, files, error_data } = this.do_pull(typeof local_data === 'string' ? null : local_data, tavern_data, {
             language,
             should_split,
         });
+        if (!lodash_default().isEmpty(error_data)) {
+            exit_on_error(dist.stringify({ [`拉取${this.type_zh} '${this.name}' 失败`]: error_data }));
+        }
         const collection_files = lodash_default()(files)
             .remove(file => is_collection_file(file.path))
             .groupBy(file => (0,external_node_path_.resolve)(this.dir, file.path))
@@ -63247,6 +63252,26 @@ class Preset_syncer extends Syncer_interface {
         const prompts_state = local_data === null
             ? []
             : [...local_data.prompts, ...local_data.prompts_unused].filter(prompt => !lodash_default().has(prompt, 'id'));
+        const local_names = prompts_state.map(entry => entry.name);
+        const tavern_names = [...tavern_data.prompts, ...tavern_data.prompts_unused]
+            .filter(entry => entry.name !== undefined)
+            .map(entry => entry.name);
+        const duplicated_names = lodash_default()(tavern_names)
+            .filter(name => {
+            const index = local_names.findIndex(n => n === name);
+            if (index !== -1) {
+                local_names.splice(index, 1);
+                return false;
+            }
+            return true;
+        })
+            .countBy()
+            .filter(count => count > 1)
+            .keys()
+            .value();
+        if (duplicated_names.length > 0) {
+            return { result_data: {}, error_data: { 以下条目存在同名条目: duplicated_names }, files: [] };
+        }
         const convert_prompts = (prompts, { used }) => prompts.forEach(prompt => {
             if (lodash_default().has(prompt, 'id')) {
                 return;
@@ -63284,7 +63309,7 @@ class Preset_syncer extends Syncer_interface {
         });
         convert_prompts(tavern_data.prompts, { used: true });
         convert_prompts(tavern_data.prompts_unused, { used: false });
-        return { result_data: tavern_data, files };
+        return { result_data: tavern_data, error_data: {}, files };
     }
     do_beautify_config(tavern_data, language) {
         const document = new dist.Document(language === 'zh' ? translate(tavern_data, lodash_default().invert(this.zh_to_en_map)) : tavern_data);
@@ -63331,11 +63356,13 @@ class Preset_syncer extends Syncer_interface {
                 }
                 const paths = glob_file(this.dir, prompt.file);
                 if (paths.length === 0) {
-                    error_data.未能找到以下外链提示词文件.push(`${source}条目 '${index}' 的 '${prompt.file}'`);
+                    error_data.未能找到以下外链提示词文件.push(`'${source}' 中第 '${index}' 条目 '${prompt.name}': '${prompt.file}'`);
                     return;
                 }
                 if (paths.length > 1) {
-                    error_data.通过补全文件后缀找到了多个文件.push(`${source}条目 '${index}' 的 '${prompt.file}'`);
+                    error_data.通过补全文件后缀找到了多个文件.push({
+                        [`'${source}' 中第 '${index}' 条目 '${prompt.name}'`]: paths,
+                    });
                 }
                 const content = extract_file_content(paths[0]);
                 if (is_collection_file(prompt.file)) {
@@ -63608,15 +63635,6 @@ const worldbook_en_Worldbook_entry = strictObject({
             .optional()
             .describe('扫描深度: 1 为仅扫描最后一个楼层, 2 为扫描最后两个楼层, 以此类推'),
     })
-        .superRefine((data, context) => {
-        if (data.type === 'selective' && data.keys === undefined) {
-            context.addIssue({
-                code: 'custom',
-                path: ['keys'],
-                message: "当激活策略为绿灯 (`'selective'`) 时, `keys` 中有必须至少一个主要关键字",
-            });
-        }
-    })
         .describe('激活策略: 条目应该何时激活'),
     position: strictObject({
         type: schemas_enum([
@@ -63721,6 +63739,15 @@ const worldbook_en_Worldbook_entry = strictObject({
         _.set(data, 'group', data.group.labels.join(','));
     }
     return data;
+})
+    .superRefine((data, context) => {
+    if (data.enabled && data.strategy.type === 'selective' && data.strategy.keys === undefined) {
+        context.addIssue({
+            code: 'custom',
+            path: ['strategy', 'keys'],
+            message: "当条目启用 (`'enabled'`) 且激活策略为绿灯 (`'selective'`) 时, `keys` 中有必须至少一个主要关键字",
+        });
+    }
 })
     .superRefine((data, context) => {
     if (data.content === undefined && data.file === undefined) {
@@ -63848,15 +63875,6 @@ const worldbook_zh_Worldbook_entry = strictObject({
             .optional()
             .describe('扫描深度: 1 为仅扫描最后一个楼层, 2 为扫描最后两个楼层, 以此类推'),
     })
-        .superRefine((data, context) => {
-        if (data.类型 === '绿灯' && data.关键字 === undefined) {
-            context.addIssue({
-                code: 'custom',
-                path: ['关键字'],
-                message: '当激活策略为`绿灯`时, `关键字`中有必须至少一个主要关键字',
-            });
-        }
-    })
         .describe('激活策略: 条目应该何时激活'),
     插入位置: strictObject({
         类型: schemas_enum([
@@ -63951,6 +63969,15 @@ const worldbook_zh_Worldbook_entry = strictObject({
     return data;
 })
     .superRefine((data, context) => {
+    if (data.启用 && data.激活策略.类型 === '绿灯' && data.激活策略.关键字 === undefined) {
+        context.addIssue({
+            code: 'custom',
+            path: ['strategy', 'keys'],
+            message: "当条目启用 (`'enabled'`) 且激活策略为绿灯 (`'selective'`) 时, `keys` 中有必须至少一个主要关键字",
+        });
+    }
+})
+    .superRefine((data, context) => {
     if (data.内容 === undefined && data.文件 === undefined) {
         ['内容', '文件'].forEach(key => context.addIssue({
             code: 'custom',
@@ -64025,6 +64052,24 @@ class Worldbook_syncer extends Syncer_interface {
     do_pull(local_data, tavern_data, { should_split }) {
         let files = [];
         const entries_state = local_data === null ? [] : local_data.entries;
+        const local_names = entries_state.map(entry => entry.name);
+        const tavern_names = tavern_data.entries.map(entry => entry.name);
+        const duplicated_names = lodash_default()(tavern_names)
+            .filter(name => {
+            const index = local_names.findIndex(n => n === name);
+            if (index !== -1) {
+                local_names.splice(index, 1);
+                return false;
+            }
+            return true;
+        })
+            .countBy()
+            .filter(count => count > 1)
+            .keys()
+            .value();
+        if (duplicated_names.length > 0) {
+            return { result_data: {}, error_data: { 以下条目存在同名条目: duplicated_names }, files: [] };
+        }
         tavern_data.entries.forEach(entry => {
             const handle_file = (entry, file) => {
                 let file_to_write = '';
@@ -64058,7 +64103,7 @@ class Worldbook_syncer extends Syncer_interface {
                 handle_file(entry, state.file);
             }
         });
-        return { result_data: tavern_data, files };
+        return { result_data: tavern_data, error_data: {}, files };
     }
     // TODO: 拆分 component
     do_beautify_config(tavern_data, language) {
@@ -64100,7 +64145,7 @@ class Worldbook_syncer extends Syncer_interface {
                 return;
             }
             if (paths.length > 1) {
-                error_data.通过补全文件后缀找到了多个文件.push(`第 '${index}' 条目 '${entry.name}': '${entry.file}'`);
+                error_data.通过补全文件后缀找到了多个文件.push({ [`第 '${index}' 条目 '${entry.name}'`]: paths });
                 return;
             }
             const content = extract_file_content(paths[0]);
