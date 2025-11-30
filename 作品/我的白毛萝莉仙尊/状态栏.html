@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的白毛萝莉仙尊 状态</title>
+    <style>
+        :root {
+            --primary: #9b4dca;
+            --accent-purple: #c084fc;
+            --accent-red: #f87171;
+            --accent-gold: #fbbf24;
+            --surface: #faf9fb;
+            --surface-strong: #ffffff;
+            --border: rgba(155, 77, 202, 0.15);
+            --text-main: #2f2742;
+            --text-muted: #6b5d7a;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: transparent;
+            color: var(--text-main);
+            padding: 14px;
+        }
+        .status-card {
+            max-width: 960px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 40px rgba(155, 77, 202, 0.12);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .status-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .status-title h1 {
+            font-size: 1.6rem;
+            letter-spacing: 0.04em;
+            color: var(--primary);
+        }
+        .status-subtitle {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        .status-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            min-width: 240px;
+        }
+        .meta-item {
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid #e8e4f0;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .meta-label {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .meta-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .tab-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px;
+            background: #f4f2f7;
+            border-radius: 14px;
+        }
+        .tab-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+        .tab-strip::-webkit-scrollbar-thumb {
+            background: rgba(155, 77, 202, 0.3);
+            border-radius: 999px;
+        }
+        .tab-button {
+            flex: none;
+            border: none;
+            background: transparent;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .tab-button:hover {
+            color: var(--primary);
+            background: rgba(155, 77, 202, 0.08);
+        }
+        .tab-button.active {
+            background: var(--surface-strong);
+            color: var(--primary);
+            box-shadow: 0 6px 16px rgba(155, 77, 202, 0.18);
+        }
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .tab-panel.active {
+            display: flex;
+        }
+        .panel-block {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid #e8e4f0;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.04em;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .info-card {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e8e4f0;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+        .info-value {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+        .metric-card {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e8e4f0;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .metric-value {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .metric-value span {
+            display: inline-flex;
+        }
+        .metric-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e8e4f0;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .progress-bar-value {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.4s ease;
+            border-radius: 999px;
+        }
+        .text-group {
+            display: grid;
+            gap: 12px;
+        }
+        .text-item {
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e8e4f0;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .info-text {
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .character-item {
+            background: var(--surface-strong);
+            border-radius: 14px;
+            border: 1px solid #e8e4f0;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .character-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .character-desc {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .empty-tip {
+            color: #9889a8;
+            text-align: center;
+            padding: 16px 12px;
+            font-size: 0.95rem;
+            background: var(--surface-strong);
+            border-radius: 12px;
+            border: 1px solid #e8e4f0;
+        }
+        .error-tip {
+            color: #b83232;
+            background: #ffe9e9;
+            border: 1px solid #ffc9c9;
+            border-radius: 14px;
+            padding: 16px;
+            line-height: 1.6;
+        }
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .status-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
+            .status-meta {
+                width: 100%;
+            }
+            .metric-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .metric-value {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="status-card" id="status-card">
+    <header class="status-header">
+        <div class="status-title">
+            <h1>我的白毛萝莉仙尊</h1>
+            <p class="status-subtitle">修仙世界,师徒情缘</p>
+        </div>
+        <div class="status-meta">
+            <div class="meta-item">
+                <span class="meta-label">当前时间</span>
+                <span class="meta-value" id="current-time">N/A</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">当前地点</span>
+                <span class="meta-value" id="current-location">N/A</span>
+            </div>
+        </div>
+    </header>
+
+    <nav class="tab-strip" role="tablist">
+        <button type="button" class="tab-button active" data-tab="main" onclick="switchTab('main', this)">当前场景</button>
+        <button type="button" class="tab-button" data-tab="suyuelong" onclick="switchTab('suyuelong', this)">苏月珑</button>
+        <button type="button" class="tab-button" data-tab="user" onclick="switchTab('user', this)">{{user}}</button>
+    </nav>
+
+    <section class="tab-panel active" id="tab-content-main">
+        <div class="panel-block">
+            <h3 class="panel-title">场景角色</h3>
+            <div id="character-list" class="text-group"></div>
+        </div>
+    </section>
+
+    <section class="tab-panel" id="tab-content-suyuelong">
+        <div class="panel-block">
+            <h3 class="panel-title">基本信息</h3>
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-label">修为</span>
+                    <span class="info-value" id="syl-xiuwei">N/A</span>
+                </div>
+                <div class="info-card">
+                    <span class="info-label">好感度</span>
+                    <span class="info-value" id="syl-affection">N/A</span>
+                </div>
+            </div>
+        </div>
+        <div class="panel-block">
+            <h3 class="panel-title">功法</h3>
+            <div id="syl-gongfa" class="text-group"></div>
+        </div>
+        <div class="panel-block">
+            <h3 class="panel-title">法宝</h3>
+            <div id="syl-fabao" class="text-group"></div>
+        </div>
+    </section>
+
+    <section class="tab-panel" id="tab-content-user">
+        <div class="panel-block">
+            <h3 class="panel-title">基本信息</h3>
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-label">修为</span>
+                    <span class="info-value" id="user-xiuwei">N/A</span>
+                </div>
+                <div class="info-card">
+                    <span class="info-label">好感度</span>
+                    <span class="info-value" id="user-affection">N/A</span>
+                </div>
+            </div>
+        </div>
+        <div class="panel-block">
+            <h3 class="panel-title">功法</h3>
+            <div id="user-gongfa" class="text-group"></div>
+        </div>
+        <div class="panel-block">
+            <h3 class="panel-title">法宝</h3>
+            <div id="user-fabao" class="text-group"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function SafeGetValue(obj, path, defaultValue = "N/A") {
+        let keys = Array.isArray(path) ? path : path.split('.');
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === undefined || current === null || typeof current !== 'object' || !current.hasOwnProperty(keys[i])) {
+                return defaultValue;
+            }
+            current = current[keys[i]];
+        }
+        if (current === undefined || current === null) {
+            return defaultValue;
+        }
+        if (Array.isArray(current)) {
+            if (current.length > 0) {
+                const actualValue = current[0];
+                if (typeof actualValue === 'boolean') {
+                    return actualValue;
+                }
+                return String(actualValue);
+            } else {
+                return defaultValue;
+            }
+        }
+        if (typeof current === 'boolean') {
+            return current;
+        }
+        if (typeof current === 'number') {
+            return current;
+        }
+        if (typeof current === 'string') {
+            return current;
+        }
+        return JSON.stringify(current);
+    }
+
+    function updateProgressBar(barId, valueMainId, valueDescId, rawValue, min = 0, max = 100, color) {
+        const progressBar = document.getElementById(barId);
+        const valueMainDisplay = document.getElementById(valueMainId);
+        const valueDescDisplay = document.getElementById(valueDescId);
+        if (!progressBar || !valueMainDisplay) {
+            return;
+        }
+        let numericValue = parseFloat(rawValue);
+        if (isNaN(numericValue)) {
+            numericValue = parseFloat(String(rawValue).replace(/[^0-9.-]/g, ''));
+        }
+        if (!isNaN(numericValue)) {
+            valueMainDisplay.innerText = numericValue;
+        } else {
+            valueMainDisplay.innerText = rawValue;
+        }
+        if (valueDescDisplay) {
+            valueDescDisplay.innerText = '';
+        }
+        if (!isNaN(numericValue)) {
+            numericValue = Math.max(min, Math.min(max, numericValue));
+            const range = max - min;
+            const percentage = range === 0 ? (numericValue >= max ? 100 : 0) : ((numericValue - min) / range) * 100;
+            progressBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+            progressBar.style.backgroundColor = color ? color : '#9b4dca';
+        }
+    }
+
+    async function initDisplay() {
+        try {
+            const messages = await getChatMessages(getCurrentMessageId());
+            if (!messages || messages.length === 0 || !messages[0].data) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (messages empty)</div>";
+                return;
+            }
+            const gameData = messages[0].data;
+            const characterData = gameData.stat_data;
+            if (!characterData) {
+                document.getElementById('status-card').innerHTML = "<div class='error-tip'>无法加载状态数据 (characterData missing)</div>";
+                return;
+            }
+
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = SafeGetValue(characterData, '世界.当前时间');
+
+            const locationElem = document.getElementById('current-location');
+            if (locationElem) locationElem.innerText = SafeGetValue(characterData, '世界.当前地点');
+
+            const characterListElem = document.getElementById('character-list');
+            if (characterListElem) {
+                const currentChars = characterData['当前角色'];
+                if (currentChars && typeof currentChars === 'object') {
+                    let charHtml = '';
+                    for (const charName in currentChars) {
+                        if (!Object.prototype.hasOwnProperty.call(currentChars, charName)) {
+                            continue;
+                        }
+                        const char = currentChars[charName];
+                        const thoughts = char['当前想法'] || '无';
+                        const state = char['当前状态'] || '无';
+                        const outfit = char['当前穿着'] || '无';
+                        charHtml += `<div class="character-item"><div class="character-name">${charName}</div><div class="character-desc"><strong>想法:</strong> ${thoughts}</div><div class="character-desc"><strong>状态:</strong> ${state}</div><div class="character-desc"><strong>穿着:</strong> ${outfit}</div></div>`;
+                    }
+                    characterListElem.innerHTML = charHtml || '<div class="empty-tip">当前场景无其他角色</div>';
+                } else {
+                    characterListElem.innerHTML = '<div class="empty-tip">当前场景无其他角色</div>';
+                }
+            }
+
+            const sylXiuwei = document.getElementById('syl-xiuwei');
+            if (sylXiuwei) sylXiuwei.innerText = SafeGetValue(characterData, '重要角色.苏月珑.修为');
+
+            const sylAffection = document.getElementById('syl-affection');
+            if (sylAffection) sylAffection.innerText = SafeGetValue(characterData, '重要角色.苏月珑.好感度');
+
+            const sylGongfaElem = document.getElementById('syl-gongfa');
+            if (sylGongfaElem) {
+                const gongfaPath = characterData['重要角色'] && characterData['重要角色']['苏月珑'] ? characterData['重要角色']['苏月珑']['功法'] : null;
+                if (gongfaPath && typeof gongfaPath === 'object' && Object.keys(gongfaPath).length > 0) {
+                    let gfHtml = '';
+                    for (const gfName in gongfaPath) {
+                        if (!Object.prototype.hasOwnProperty.call(gongfaPath, gfName)) {
+                            continue;
+                        }
+                        const gf = gongfaPath[gfName];
+                        const pinjie = gf['品阶'] || '未知';
+                        const desc = gf['描述'] || '无描述';
+                        gfHtml += `<div class="text-item"><span class="info-label">${gfName} (${pinjie})</span><p class="info-text">${desc}</p></div>`;
+                    }
+                    sylGongfaElem.innerHTML = gfHtml;
+                } else {
+                    sylGongfaElem.innerHTML = '<div class="empty-tip">暂无功法</div>';
+                }
+            }
+
+            const sylFabaoElem = document.getElementById('syl-fabao');
+            if (sylFabaoElem) {
+                const fabaoPath = characterData['重要角色'] && characterData['重要角色']['苏月珑'] ? characterData['重要角色']['苏月珑']['法宝'] : null;
+                if (fabaoPath && typeof fabaoPath === 'object' && Object.keys(fabaoPath).length > 0) {
+                    let fbHtml = '';
+                    for (const fbName in fabaoPath) {
+                        if (!Object.prototype.hasOwnProperty.call(fabaoPath, fbName)) {
+                            continue;
+                        }
+                        const fb = fabaoPath[fbName];
+                        const pinjie = fb['品阶'] || '未知';
+                        const desc = fb['描述'] || '无描述';
+                        fbHtml += `<div class="text-item"><span class="info-label">${fbName} (${pinjie})</span><p class="info-text">${desc}</p></div>`;
+                    }
+                    sylFabaoElem.innerHTML = fbHtml;
+                } else {
+                    sylFabaoElem.innerHTML = '<div class="empty-tip">暂无法宝</div>';
+                }
+            }
+
+            const userXiuwei = document.getElementById('user-xiuwei');
+            if (userXiuwei) userXiuwei.innerText = SafeGetValue(characterData, '重要角色.{{user}}.修为');
+
+            const userAffection = document.getElementById('user-affection');
+            if (userAffection) userAffection.innerText = SafeGetValue(characterData, '重要角色.{{user}}.好感度');
+
+            const userGongfaElem = document.getElementById('user-gongfa');
+            if (userGongfaElem) {
+                const userGongfaPath = characterData['重要角色'] && characterData['重要角色']['{{user}}'] ? characterData['重要角色']['{{user}}']['功法'] : null;
+                if (userGongfaPath && typeof userGongfaPath === 'object' && Object.keys(userGongfaPath).length > 0) {
+                    let gfHtml = '';
+                    for (const gfName in userGongfaPath) {
+                        if (!Object.prototype.hasOwnProperty.call(userGongfaPath, gfName)) {
+                            continue;
+                        }
+                        const gf = userGongfaPath[gfName];
+                        const pinjie = gf['品阶'] || '未知';
+                        const desc = gf['描述'] || '无描述';
+                        gfHtml += `<div class="text-item"><span class="info-label">${gfName} (${pinjie})</span><p class="info-text">${desc}</p></div>`;
+                    }
+                    userGongfaElem.innerHTML = gfHtml;
+                } else {
+                    userGongfaElem.innerHTML = '<div class="empty-tip">暂无功法</div>';
+                }
+            }
+
+            const userFabaoElem = document.getElementById('user-fabao');
+            if (userFabaoElem) {
+                const userFabaoPath = characterData['重要角色'] && characterData['重要角色']['{{user}}'] ? characterData['重要角色']['{{user}}']['法宝'] : null;
+                if (userFabaoPath && typeof userFabaoPath === 'object' && Object.keys(userFabaoPath).length > 0) {
+                    let fbHtml = '';
+                    for (const fbName in userFabaoPath) {
+                        if (!Object.prototype.hasOwnProperty.call(userFabaoPath, fbName)) {
+                            continue;
+                        }
+                        const fb = userFabaoPath[fbName];
+                        const pinjie = fb['品阶'] || '未知';
+                        const desc = fb['描述'] || '无描述';
+                        fbHtml += `<div class="text-item"><span class="info-label">${fbName} (${pinjie})</span><p class="info-text">${desc}</p></div>`;
+                    }
+                    userFabaoElem.innerHTML = fbHtml;
+                } else {
+                    userFabaoElem.innerHTML = '<div class="empty-tip">暂无法宝</div>';
+                }
+            }
+
+        } catch (error) {
+            document.getElementById('status-card').innerHTML = `<div class='error-tip'>状态栏加载出错: ${error.message}</div>`;
+        }
+    }
+
+    function switchTab(tabName, tabElement) {
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-panel');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        contents.forEach(content => content.classList.remove('active'));
+        if (tabElement) {
+            tabElement.classList.add('active');
+        } else {
+            const fallback = document.querySelector('[data-tab="' + tabName + '"]');
+            if (fallback) {
+                fallback.classList.add('active');
+            }
+        }
+        const targetPanel = document.getElementById('tab-content-' + tabName);
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initDisplay);
+</script>
+</body>
+</html>
