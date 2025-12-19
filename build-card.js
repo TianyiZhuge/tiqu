@@ -130,7 +130,7 @@ function createRegexScripts(statusBarPath) {
       scriptName: "去除更新变量",
       disabled: false,
       runOnEdit: true,
-      findRegex: "/<update>[\\s\\S]*?</update>/gm",
+      findRegex: "/<(UpdateVariable|Analysis|JSONPatch)>[\\s\\S]*?</\\1>/gm",
       replaceString: "",
       trimStrings: [],
       placement: [2],
