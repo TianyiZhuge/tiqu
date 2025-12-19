@@ -8,8 +8,11 @@ character_version: ""
 
 # 主要字段映射(空字符串表示该字段为空)
 # 对话补充等额外设定应该放入 character_book，而不是使用 mes_example
+#
+# 单角色作品: description 填写角色设定文件路径
+# 多角色作品: description 保持为空 ""，各角色设定写入 character_book 的其他设定条目中
 fields:
-  description: 作品/示例作品/角色设定.xyaml
+  description: 作品/示例作品/角色设定.xyaml  # 单角色时使用；多角色时留空
   personality: ""
   scenario: ""
   first_mes: 作品/示例作品/开场白.md
@@ -93,8 +96,10 @@ character_book:
       depth: 4
       role: 0
 
-    # 其他设定条目 - 可以有多个,insertion_order依次递增
-    - comment: "其他设定条目1"
+    # 其他设定条目 - 可以有多个，insertion_order 依次递增
+    # 多角色作品：将各角色设定依次写入此处（如：角色A、角色B、角色C...）
+    # 单角色作品：其他补充设定写入此处
+    - comment: "其他设定条目1"  # 多角色时：角色A设定
       content: 作品/示例作品/其他设定1.xyaml
       enabled: true
       position: after_char
@@ -102,7 +107,7 @@ character_book:
       depth: 4
       role: 0
 
-    - comment: "其他设定条目2"
+    - comment: "其他设定条目2"  # 多角色时：角色B设定
       content: 作品/示例作品/其他设定2.xyaml
       enabled: true
       position: after_char
