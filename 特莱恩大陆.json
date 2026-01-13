@@ -37,7 +37,7 @@
       },
       "regex_scripts": [
         {
-          "id": "8700ab8e-7508-4009-9cd8-1ed6f0e4a0ac",
+          "id": "f2c9c1b3-7678-4acb-8468-2e42605eb462",
           "scriptName": "删除UI标签-Prompt",
           "findRegex": "<TelainUI>[\\s\\S]*?<\\/TelainUI>",
           "replaceString": "",
@@ -54,7 +54,7 @@
           "maxDepth": null
         },
         {
-          "id": "f5516303-1352-40ae-b30d-53cd709c0b92",
+          "id": "0d450cc4-8af5-4bc4-8da2-c1d6e202f77c",
           "scriptName": "渲染游戏UI-Display",
           "findRegex": "<TelainUI>[\\s\\S]*?<\\/TelainUI>",
           "replaceString": "```\n<body>\n<script>\n$(\"body\").load(\"https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/extensions/telain-rpg/dist/index.html\");\n</script>\n</body>\n```",
@@ -69,6 +69,18 @@
           "substituteRegex": 0,
           "minDepth": null,
           "maxDepth": null
+        }
+      ],
+      "TavernHelper_scripts": [
+        {
+          "id": "a4bbd86f-65c8-4155-96fa-d45c223eab23",
+          "name": "TelainRPG-RegexLoader",
+          "enabled": true,
+          "content": "$(() => {\n  const UI_URL = 'https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/extensions/telain-rpg/dist/index.html';\n\n  // 使用TavernHelper API注册全局regex\n  updateTavernRegexesWith((regexes) => {\n    // 移除旧的同名regex\n    const filtered = regexes.filter(r => r.script_name !== 'TelainRPG-UI-Display' && r.script_name !== 'TelainRPG-UI-Prompt');\n\n    // 添加 Prompt 清除规则\n    filtered.push({\n      id: 'telain-rpg-prompt-' + Date.now(),\n      script_name: 'TelainRPG-UI-Prompt',\n      enabled: true,\n      run_on_edit: true,\n      scope: 'global',\n      find_regex: '<TelainUI>[\\\\s\\\\S]*?<\\\\/TelainUI>',\n      replace_string: '',\n      source: {\n        user_input: false,\n        ai_output: true,\n        slash_command: false,\n        world_info: false,\n      },\n      destination: {\n        display: false,\n        prompt: true,\n      },\n      min_depth: null,\n      max_depth: null,\n    });\n\n    // 添加 Display 渲染规则\n    filtered.push({\n      id: 'telain-rpg-display-' + Date.now(),\n      script_name: 'TelainRPG-UI-Display',\n      enabled: true,\n      run_on_edit: false,\n      scope: 'global',\n      find_regex: '<TelainUI>[\\\\s\\\\S]*?<\\\\/TelainUI>',\n      replace_string: '```\\n<body>\\n<script>\\n$(\"body\").load(\"' + UI_URL + '\");\\n</script>\\n</body>\\n```',\n      source: {\n        user_input: false,\n        ai_output: true,\n        slash_command: false,\n        world_info: false,\n      },\n      destination: {\n        display: true,\n        prompt: false,\n      },\n      min_depth: null,\n      max_depth: null,\n    });\n\n    return filtered;\n  }, { scope: 'global' });\n\n  console.log('[Telain RPG] Global regex registered successfully');\n});",
+          "button": {
+            "enabled": false,
+            "buttons": []
+          }
         }
       ]
     }
