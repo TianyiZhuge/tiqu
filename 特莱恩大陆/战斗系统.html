@@ -1,0 +1,1107 @@
+<!--
+  特莱恩大陆 - 战斗系统
+  独立JavaScript战斗引擎 + 卡牌式UI
+-->
+
+<style>
+/* ========== 基础样式 ========== */
+.battle-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.battle-container.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-panel {
+  width: 90%;
+  max-width: 900px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #0f3460;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 30px rgba(0, 100, 200, 0.3);
+}
+
+/* ========== 战斗区域布局 ========== */
+.battle-area {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.enemy-section, .ally-section {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.battle-log {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 10px;
+  height: 120px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.battle-log .log-entry {
+  margin: 3px 0;
+  padding: 2px 5px;
+}
+
+.battle-log .log-damage { color: #ff6b6b; }
+.battle-log .log-heal { color: #51cf66; }
+.battle-log .log-info { color: #74c0fc; }
+.battle-log .log-turn { color: #ffd43b; font-weight: bold; }
+
+/* ========== 卡牌样式 ========== */
+.unit-card {
+  width: 130px;
+  background: linear-gradient(180deg, #2d3436 0%, #1e272e 100%);
+  border: 3px solid #8B7355;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.unit-card.elite {
+  border-color: #4169E1;
+  box-shadow: 0 0 10px rgba(65, 105, 225, 0.4);
+}
+
+.unit-card.legendary {
+  border-color: #FFD700;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.unit-card.active {
+  border-color: #00ff88;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+  transform: scale(1.05);
+}
+
+.unit-card.selected {
+  border-color: #ff4444;
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.5);
+}
+
+.unit-card.defeated {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.unit-card .card-portrait {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 8px;
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  background-color: #444;
+}
+
+.unit-card .card-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unit-card .card-unit {
+  font-size: 11px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.unit-card .card-hp-bar {
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.unit-card .card-hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #51cf66, #94d82d);
+  transition: width 0.3s ease;
+}
+
+.unit-card .card-hp-fill.low {
+  background: linear-gradient(90deg, #ff6b6b, #ffa502);
+}
+
+.unit-card .card-hp-fill.critical {
+  background: linear-gradient(90deg, #ff4444, #ff6b6b);
+}
+
+/* ========== 对话气泡 ========== */
+.dialogue-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 12px;
+  max-width: 200px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  z-index: 100;
+  animation: fadeInUp 0.3s ease;
+}
+
+.dialogue-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.95);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ========== 行动菜单 ========== */
+.action-menu {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #3498db, #2980b9);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: linear-gradient(180deg, #5dade2, #3498db);
+  transform: translateY(-2px);
+}
+
+.action-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.action-btn.attack { background: linear-gradient(180deg, #e74c3c, #c0392b); }
+.action-btn.attack:hover { background: linear-gradient(180deg, #ec7063, #e74c3c); }
+
+.action-btn.defend { background: linear-gradient(180deg, #27ae60, #1e8449); }
+.action-btn.defend:hover { background: linear-gradient(180deg, #2ecc71, #27ae60); }
+
+.action-btn.retreat { background: linear-gradient(180deg, #7f8c8d, #6c7a7d); }
+.action-btn.retreat:hover { background: linear-gradient(180deg, #95a5a6, #7f8c8d); }
+
+/* ========== 目标选择提示 ========== */
+.target-hint {
+  text-align: center;
+  color: #ffd43b;
+  font-size: 14px;
+  margin: 10px 0;
+  display: none;
+}
+
+.target-hint.active {
+  display: block;
+}
+
+/* ========== 战斗结果界面 ========== */
+.battle-result {
+  display: none;
+  text-align: center;
+  padding: 30px;
+}
+
+.battle-result.active {
+  display: block;
+}
+
+.battle-result h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.battle-result.victory h2 { color: #51cf66; }
+.battle-result.defeat h2 { color: #ff6b6b; }
+.battle-result.retreat h2 { color: #ffd43b; }
+
+.battle-result .rewards {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.battle-result .end-btn {
+  padding: 12px 30px;
+  font-size: 16px;
+  background: linear-gradient(180deg, #9b59b6, #8e44ad);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.battle-result .end-btn:hover {
+  background: linear-gradient(180deg, #a569bd, #9b59b6);
+}
+
+/* ========== 状态栏入口按钮 ========== */
+.battle-status-bar {
+  padding: 10px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.army-info {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.commander-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.3);
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+.commander-mini .mini-portrait {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  background-size: cover;
+  background-color: #444;
+}
+
+.commander-mini .mini-info {
+  font-size: 12px;
+  color: #ddd;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.status-btn {
+  padding: 8px 15px;
+  background: #3498db;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.status-btn:hover {
+  background: #5dade2;
+}
+</style>
+
+<!-- 战斗弹窗容器 -->
+<div id="battleContainer" class="battle-container">
+  <div class="battle-panel">
+    <!-- 战斗区域 -->
+    <div id="battleArea" class="battle-area">
+      <div class="enemy-section" id="enemySection"></div>
+      <div class="battle-log" id="battleLog"></div>
+      <div class="ally-section" id="allySection"></div>
+      <div class="target-hint" id="targetHint">选择目标</div>
+      <div class="action-menu" id="actionMenu"></div>
+    </div>
+
+    <!-- 战斗结果 -->
+    <div id="battleResult" class="battle-result">
+      <h2 id="resultTitle"></h2>
+      <div id="resultDetails"></div>
+      <div class="rewards" id="rewardsSection"></div>
+      <button class="end-btn" id="endBattleBtn">结束战斗</button>
+    </div>
+  </div>
+</div>
+
+<!-- 状态栏显示 -->
+<div class="battle-status-bar">
+  <div class="army-info" id="armyInfo"></div>
+  <div class="status-buttons">
+    <button class="status-btn" id="editCardBtn">编辑卡面</button>
+  </div>
+</div>
+
+<script type="module">
+/* ========== 战斗引擎核心 ========== */
+
+/* 等待MVU系统初始化 */
+await waitGlobalInitialized('Mvu');
+
+/* 获取游戏数据（从游戏数据.js内联） */
+const UNIT_TEMPLATES = {
+  "剑士": { hp: 15, atk: 10, def: 8, spd: 5, skills: ["盾墙"] },
+  "长枪兵": { hp: 12, atk: 12, def: 5, spd: 6, skills: ["枪阵"] },
+  "弓箭手": { hp: 10, atk: 14, def: 3, spd: 7, skills: ["齐射"] },
+  "骑兵": { hp: 18, atk: 12, def: 6, spd: 12, skills: ["冲锋"] },
+  "法师": { hp: 8, atk: 16, def: 2, spd: 4, skills: ["火球术"] },
+  "牧师": { hp: 10, atk: 4, def: 4, spd: 3, skills: ["治愈之光"] },
+  "哥布林": { hp: 8, atk: 6, def: 2, spd: 8, skills: ["群攻"] },
+  "哥布林弓手": { hp: 6, atk: 8, def: 1, spd: 7, skills: ["毒箭"] },
+  "座狼": { hp: 12, atk: 10, def: 4, spd: 14, skills: ["撕咬"] },
+  "兽人": { hp: 20, atk: 14, def: 6, spd: 5, skills: ["狂暴"] },
+  "骷髅兵": { hp: 10, atk: 8, def: 4, spd: 4, skills: ["不死"] },
+  "暗影刺客": { hp: 10, atk: 18, def: 2, spd: 15, skills: ["暗杀"] },
+};
+
+const BATTLE_CONSTANTS = {
+  DEFENSE_FACTOR: 100,
+  DAMAGE_RANDOM_MIN: 0.9,
+  DAMAGE_RANDOM_MAX: 1.1,
+  BRAVERY_ATK_BONUS: 0.02,
+  BASE_EXP_PER_ENEMY: 10,
+  BASE_GOLD_PER_ENEMY: 5,
+};
+
+/* ========== 战斗管理器 ========== */
+class BattleManager {
+  constructor() {
+    this.allies = [];
+    this.enemies = [];
+    this.turnOrder = [];
+    this.currentTurnIndex = 0;
+    this.currentTurn = 1;
+    this.isPlayerTurn = false;
+    this.selectedAction = null;
+    this.dialogues = [];
+    this.triggeredDialogues = new Set();
+    this.battleLog = [];
+    this.isActive = false;
+  }
+
+  /* 初始化战斗 */
+  initBattle(allyData, enemyData, dialogues = []) {
+    this.allies = allyData.map((a, i) => this.createBattleUnit(a, 'ally', i));
+    this.enemies = enemyData.map((e, i) => this.createBattleUnit(e, 'enemy', i));
+    this.dialogues = dialogues;
+    this.triggeredDialogues.clear();
+    this.currentTurn = 1;
+    this.currentTurnIndex = 0;
+    this.battleLog = [];
+    this.isActive = true;
+
+    this.calculateTurnOrder();
+    this.renderBattle();
+    this.showBattleUI();
+    this.checkDialogueTrigger('战斗开始');
+    this.startTurn();
+  }
+
+  /* 创建战斗单位 */
+  createBattleUnit(data, side, index) {
+    const unitTemplate = UNIT_TEMPLATES[data.unit.type] || {};
+    const baseHp = unitTemplate.hp || 10;
+    const count = data.unit.currentCount || data.unit.count;
+
+    return {
+      id: data.id || `${side}_${index}`,
+      name: data.name,
+      side: side,
+      unit: {
+        type: data.unit.type,
+        currentCount: count,
+        maxCount: data.unit.maxCount || count,
+        initialCount: count,
+        hp: baseHp,
+        atk: unitTemplate.atk || 10,
+        def: unitTemplate.def || 5,
+        spd: unitTemplate.spd || 5,
+        skills: unitTemplate.skills || [],
+        frontRowHp: data.unit.frontRowHp || baseHp,
+      },
+      commander: {
+        bravery: data.attributes?.bravery || 10,
+        tactics: data.attributes?.tactics || 10,
+        leadership: data.attributes?.leadership || 10,
+        skills: data.skills || [],
+      },
+      cardCustomization: data.cardCustomization || {},
+      buffs: [],
+      isDefending: false,
+      isDefeated: false,
+    };
+  }
+
+  /* 计算行动顺序（按速度降序） */
+  calculateTurnOrder() {
+    const allUnits = [...this.allies, ...this.enemies].filter(u => !u.isDefeated);
+    this.turnOrder = allUnits.sort((a, b) => {
+      const spdA = a.unit.spd + (a.commander.tactics * 0.1);
+      const spdB = b.unit.spd + (b.commander.tactics * 0.1);
+      return spdB - spdA;
+    });
+  }
+
+  /* 开始回合 */
+  startTurn() {
+    if (!this.isActive) return;
+
+    /* 检查胜负 */
+    if (this.checkBattleEnd()) return;
+
+    /* 重新计算行动顺序 */
+    this.calculateTurnOrder();
+
+    if (this.currentTurnIndex >= this.turnOrder.length) {
+      this.currentTurnIndex = 0;
+      this.currentTurn++;
+      this.logMessage(`回合 ${this.currentTurn}`, 'turn');
+      this.checkDialogueTrigger(`回合${this.currentTurn}`);
+    }
+
+    const currentUnit = this.turnOrder[this.currentTurnIndex];
+    if (!currentUnit || currentUnit.isDefeated) {
+      this.currentTurnIndex++;
+      this.startTurn();
+      return;
+    }
+
+    /* 清除防御状态 */
+    currentUnit.isDefending = false;
+
+    /* 更新UI高亮 */
+    this.updateActiveUnit(currentUnit);
+
+    if (currentUnit.side === 'ally') {
+      this.isPlayerTurn = true;
+      this.showActionMenu(currentUnit);
+    } else {
+      this.isPlayerTurn = false;
+      this.hideActionMenu();
+      setTimeout(() => this.executeEnemyAI(currentUnit), 800);
+    }
+  }
+
+  /* 玩家选择攻击 */
+  selectAttack() {
+    this.selectedAction = 'attack';
+    this.showTargetSelection();
+  }
+
+  /* 玩家选择防御 */
+  selectDefend() {
+    const currentUnit = this.turnOrder[this.currentTurnIndex];
+    currentUnit.isDefending = true;
+    this.logMessage(`${currentUnit.name} 的 ${currentUnit.unit.type} 进入防御姿态`, 'info');
+    this.endTurn();
+  }
+
+  /* 玩家选择撤退 */
+  selectRetreat() {
+    this.endBattle('retreat');
+  }
+
+  /* 执行攻击 */
+  executeAttack(attacker, target) {
+    /* 检查对话触发 */
+    this.checkDialogueTrigger(`${attacker.name} 攻击 ${target.name}`);
+
+    /* 计算伤害 */
+    const damage = this.calculateDamage(attacker, target);
+
+    /* 应用伤害并计算伤亡 */
+    const casualties = this.applyDamage(target, damage);
+
+    this.logMessage(
+      `${attacker.name}【${attacker.unit.type}×${attacker.unit.currentCount}】攻击 ${target.name}【${target.unit.type}】，` +
+      `造成 ${Math.round(damage)} 伤害，击杀 ${casualties} 人`,
+      'damage'
+    );
+
+    /* 检查是否击败 */
+    if (target.isDefeated) {
+      this.checkDialogueTrigger(`${attacker.name} 击败 ${target.name}`);
+      this.logMessage(`${target.name} 的部队被消灭！`, 'info');
+    }
+
+    this.updateCardUI(target);
+    this.hideTargetSelection();
+    this.endTurn();
+  }
+
+  /* 计算伤害 */
+  calculateDamage(attacker, target) {
+    const unitAtk = attacker.unit.atk;
+    const count = attacker.unit.currentCount;
+    const braveryBonus = 1 + (attacker.commander.bravery * BATTLE_CONSTANTS.BRAVERY_ATK_BONUS);
+
+    const totalAtk = unitAtk * count * braveryBonus;
+
+    let targetDef = target.unit.def;
+    if (target.isDefending) {
+      targetDef *= 1.5;
+    }
+
+    const defReduction = 1 - (targetDef / (targetDef + BATTLE_CONSTANTS.DEFENSE_FACTOR));
+    const randomFactor = BATTLE_CONSTANTS.DAMAGE_RANDOM_MIN +
+      Math.random() * (BATTLE_CONSTANTS.DAMAGE_RANDOM_MAX - BATTLE_CONSTANTS.DAMAGE_RANDOM_MIN);
+
+    return totalAtk * defReduction * randomFactor;
+  }
+
+  /* 应用伤害（国王恩赐式HP池） */
+  applyDamage(target, damage) {
+    const unitHp = target.unit.hp;
+    const currentCount = target.unit.currentCount;
+    const frontRowHp = target.unit.frontRowHp;
+
+    /* 计算总HP池 */
+    const totalHpPool = (currentCount - 1) * unitHp + frontRowHp;
+    const newHpPool = totalHpPool - damage;
+
+    if (newHpPool <= 0) {
+      /* 部队全灭 */
+      const casualties = currentCount;
+      target.unit.currentCount = 0;
+      target.unit.frontRowHp = 0;
+      target.isDefeated = true;
+      return casualties;
+    }
+
+    /* 计算新的兵员数和前排HP */
+    const newCount = Math.ceil(newHpPool / unitHp);
+    const newFrontRowHp = newHpPool - (newCount - 1) * unitHp;
+
+    const casualties = currentCount - newCount;
+    target.unit.currentCount = newCount;
+    target.unit.frontRowHp = newFrontRowHp > 0 ? newFrontRowHp : unitHp;
+
+    return casualties;
+  }
+
+  /* 敌方AI */
+  executeEnemyAI(enemy) {
+    const aliveAllies = this.allies.filter(a => !a.isDefeated);
+    if (aliveAllies.length === 0) {
+      this.checkBattleEnd();
+      return;
+    }
+
+    /* 简单AI：攻击HP最低的目标 */
+    const target = aliveAllies.reduce((lowest, ally) => {
+      const hpA = lowest.unit.currentCount * lowest.unit.hp;
+      const hpB = ally.unit.currentCount * ally.unit.hp;
+      return hpB < hpA ? ally : lowest;
+    });
+
+    this.executeAttack(enemy, target);
+  }
+
+  /* 结束当前单位回合 */
+  endTurn() {
+    this.currentTurnIndex++;
+    setTimeout(() => this.startTurn(), 500);
+  }
+
+  /* 检查战斗结束 */
+  checkBattleEnd() {
+    const aliveAllies = this.allies.filter(a => !a.isDefeated);
+    const aliveEnemies = this.enemies.filter(e => !e.isDefeated);
+
+    /* 检查HP阈值对话 */
+    const totalAllyHp = aliveAllies.reduce((sum, a) => sum + a.unit.currentCount * a.unit.hp, 0);
+    const maxAllyHp = this.allies.reduce((sum, a) => sum + a.unit.initialCount * a.unit.hp, 0);
+    const allyHpPercent = (totalAllyHp / maxAllyHp) * 100;
+
+    if (allyHpPercent < 30) this.checkDialogueTrigger('我方HP低于30%');
+    if (allyHpPercent < 50) this.checkDialogueTrigger('我方HP低于50%');
+
+    if (aliveEnemies.length === 0) {
+      this.endBattle('victory');
+      return true;
+    }
+
+    if (aliveAllies.length === 0) {
+      this.endBattle('defeat');
+      return true;
+    }
+
+    return false;
+  }
+
+  /* 结束战斗 */
+  endBattle(result) {
+    this.isActive = false;
+    this.checkDialogueTrigger(result === 'victory' ? '胜利' : result === 'defeat' ? '失败' : '撤退');
+
+    /* 计算奖励 */
+    const rewards = this.calculateRewards(result);
+
+    /* 记录伤亡 */
+    const ourCasualties = {};
+    this.allies.forEach(a => {
+      ourCasualties[a.name] = {
+        unit: a.unit.type,
+        initial: a.unit.initialCount,
+        remaining: a.unit.currentCount,
+        lost: a.unit.initialCount - a.unit.currentCount,
+      };
+    });
+
+    const enemyCasualties = {};
+    this.enemies.forEach(e => {
+      enemyCasualties[e.name] = {
+        unit: e.unit.type,
+        initial: e.unit.initialCount,
+        remaining: e.unit.currentCount,
+        lost: e.unit.initialCount - e.unit.currentCount,
+      };
+    });
+
+    /* 显示结果界面 */
+    this.showResultUI(result, ourCasualties, enemyCasualties, rewards);
+  }
+
+  /* 计算奖励 */
+  calculateRewards(result) {
+    if (result !== 'victory') {
+      return { exp: 0, gold: 0, items: [] };
+    }
+
+    let exp = 0;
+    let gold = 0;
+    const items = [];
+
+    this.enemies.forEach(e => {
+      const killed = e.unit.initialCount - e.unit.currentCount;
+      exp += killed * BATTLE_CONSTANTS.BASE_EXP_PER_ENEMY;
+      gold += killed * BATTLE_CONSTANTS.BASE_GOLD_PER_ENEMY;
+    });
+
+    return { exp, gold, items };
+  }
+
+  /* 检查对话触发 */
+  checkDialogueTrigger(trigger) {
+    const dialogue = this.dialogues.find(d =>
+      d.trigger === trigger && !this.triggeredDialogues.has(d.trigger + d.speaker)
+    );
+
+    if (dialogue) {
+      this.triggeredDialogues.add(dialogue.trigger + dialogue.speaker);
+      this.showDialogue(dialogue);
+    }
+  }
+
+  /* 显示对话气泡 */
+  showDialogue(dialogue) {
+    /* 查找说话者的卡片 */
+    const speaker = [...this.allies, ...this.enemies].find(u => u.name === dialogue.speaker);
+    if (!speaker) return;
+
+    const cardElement = document.querySelector(`[data-unit-id="${speaker.id}"]`);
+    if (!cardElement) return;
+
+    /* 创建对话气泡 */
+    const bubble = document.createElement('div');
+    bubble.className = 'dialogue-bubble';
+    bubble.textContent = dialogue.text;
+    cardElement.style.position = 'relative';
+    cardElement.appendChild(bubble);
+
+    /* 自动消失 */
+    setTimeout(() => {
+      bubble.remove();
+
+      /* 如果有回应 */
+      if (dialogue.responder && dialogue.response) {
+        setTimeout(() => {
+          this.showDialogue({
+            speaker: dialogue.responder,
+            text: dialogue.response,
+          });
+        }, 300);
+      }
+    }, 3000);
+  }
+
+  /* 记录日志 */
+  logMessage(message, type = 'info') {
+    this.battleLog.push({ message, type });
+    const logContainer = document.getElementById('battleLog');
+    if (logContainer) {
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `> ${message}`;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+  }
+
+  /* ========== UI方法 ========== */
+
+  showBattleUI() {
+    document.getElementById('battleContainer').classList.add('active');
+    document.getElementById('battleArea').style.display = 'flex';
+    document.getElementById('battleResult').classList.remove('active');
+  }
+
+  hideBattleUI() {
+    document.getElementById('battleContainer').classList.remove('active');
+  }
+
+  renderBattle() {
+    /* 渲染敌方 */
+    const enemySection = document.getElementById('enemySection');
+    enemySection.innerHTML = '';
+    this.enemies.forEach(e => {
+      enemySection.appendChild(this.createCardElement(e));
+    });
+
+    /* 渲染我方 */
+    const allySection = document.getElementById('allySection');
+    allySection.innerHTML = '';
+    this.allies.forEach(a => {
+      allySection.appendChild(this.createCardElement(a));
+    });
+
+    /* 清空日志 */
+    document.getElementById('battleLog').innerHTML = '';
+    this.logMessage(`回合 ${this.currentTurn}`, 'turn');
+  }
+
+  createCardElement(unit) {
+    const card = document.createElement('div');
+    card.className = `unit-card ${unit.cardCustomization?.frame || 'normal'}`;
+    card.dataset.unitId = unit.id;
+    card.dataset.side = unit.side;
+
+    if (unit.isDefeated) {
+      card.classList.add('defeated');
+    }
+
+    const hpPercent = (unit.unit.currentCount / unit.unit.maxCount) * 100;
+    const hpClass = hpPercent <= 30 ? 'critical' : hpPercent <= 60 ? 'low' : '';
+
+    const portrait = unit.cardCustomization?.portrait ||
+      `https://placehold.co/80x80/4a5568/ffffff?text=${encodeURIComponent(unit.unit.type.charAt(0))}`;
+
+    card.innerHTML = `
+      <div class="card-portrait" style="background-image: url('${portrait}')"></div>
+      <div class="card-name">${unit.name}</div>
+      <div class="card-unit">[${unit.unit.type}×${unit.unit.currentCount}]</div>
+      <div class="card-hp-bar">
+        <div class="card-hp-fill ${hpClass}" style="width: ${hpPercent}%"></div>
+      </div>
+    `;
+
+    /* 点击选择目标 */
+    card.addEventListener('click', () => {
+      if (this.isPlayerTurn && this.selectedAction === 'attack' && unit.side === 'enemy' && !unit.isDefeated) {
+        this.executeAttack(this.turnOrder[this.currentTurnIndex], unit);
+      }
+    });
+
+    return card;
+  }
+
+  updateCardUI(unit) {
+    const card = document.querySelector(`[data-unit-id="${unit.id}"]`);
+    if (!card) return;
+
+    if (unit.isDefeated) {
+      card.classList.add('defeated');
+    }
+
+    const hpPercent = (unit.unit.currentCount / unit.unit.maxCount) * 100;
+    const hpClass = hpPercent <= 30 ? 'critical' : hpPercent <= 60 ? 'low' : '';
+
+    card.querySelector('.card-unit').textContent = `[${unit.unit.type}×${unit.unit.currentCount}]`;
+    const hpFill = card.querySelector('.card-hp-fill');
+    hpFill.style.width = `${hpPercent}%`;
+    hpFill.className = `card-hp-fill ${hpClass}`;
+  }
+
+  updateActiveUnit(unit) {
+    document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('active'));
+    const card = document.querySelector(`[data-unit-id="${unit.id}"]`);
+    if (card) card.classList.add('active');
+  }
+
+  showActionMenu(unit) {
+    const menu = document.getElementById('actionMenu');
+    menu.innerHTML = `
+      <button class="action-btn attack" onclick="window.battleManager.selectAttack()">攻击</button>
+      <button class="action-btn defend" onclick="window.battleManager.selectDefend()">防御</button>
+      <button class="action-btn retreat" onclick="window.battleManager.selectRetreat()">撤退</button>
+    `;
+  }
+
+  hideActionMenu() {
+    document.getElementById('actionMenu').innerHTML = '';
+  }
+
+  showTargetSelection() {
+    document.getElementById('targetHint').classList.add('active');
+    document.querySelectorAll('.unit-card[data-side="enemy"]:not(.defeated)').forEach(c => {
+      c.classList.add('selectable');
+    });
+  }
+
+  hideTargetSelection() {
+    document.getElementById('targetHint').classList.remove('active');
+    document.querySelectorAll('.unit-card').forEach(c => {
+      c.classList.remove('selectable', 'selected');
+    });
+    this.selectedAction = null;
+  }
+
+  showResultUI(result, ourCasualties, enemyCasualties, rewards) {
+    document.getElementById('battleArea').style.display = 'none';
+    const resultDiv = document.getElementById('battleResult');
+    resultDiv.classList.add('active', result);
+
+    const titles = {
+      victory: '战斗胜利！',
+      defeat: '战斗失败...',
+      retreat: '成功撤退',
+    };
+    document.getElementById('resultTitle').textContent = titles[result];
+
+    /* 伤亡详情 */
+    let detailsHtml = '<h3>我方伤亡</h3><ul>';
+    Object.entries(ourCasualties).forEach(([name, data]) => {
+      detailsHtml += `<li>${name} [${data.unit}]: ${data.initial}→${data.remaining} (阵亡${data.lost}人)</li>`;
+    });
+    detailsHtml += '</ul><h3>敌方伤亡</h3><ul>';
+    Object.entries(enemyCasualties).forEach(([name, data]) => {
+      const status = data.remaining === 0 ? '全灭' : `剩余${data.remaining}人`;
+      detailsHtml += `<li>${name} [${data.unit}]: ${status}</li>`;
+    });
+    detailsHtml += '</ul>';
+    document.getElementById('resultDetails').innerHTML = detailsHtml;
+
+    /* 奖励 */
+    if (result === 'victory') {
+      document.getElementById('rewardsSection').innerHTML = `
+        <h3>获得奖励</h3>
+        <p>经验: ${rewards.exp}</p>
+        <p>金币: ${rewards.gold}</p>
+      `;
+    } else {
+      document.getElementById('rewardsSection').innerHTML = '';
+    }
+
+    /* 保存战斗结果供发送 */
+    this.battleResult = {
+      result,
+      turns: this.currentTurn,
+      ourCasualties,
+      enemyCasualties,
+      rewards,
+    };
+  }
+
+  /* 生成战斗结果文本（用于发送给LLM） */
+  generateResultText() {
+    const r = this.battleResult;
+    const resultText = r.result === 'victory' ? '胜利' : r.result === 'defeat' ? '失败' : '撤退';
+
+    let text = `[战斗结果]\n结果: ${resultText}\n回合数: ${r.turns}\n`;
+
+    text += '我方伤亡:\n';
+    Object.entries(r.ourCasualties).forEach(([name, data]) => {
+      text += `  - ${name} [${data.unit}]: ${data.initial}→${data.remaining} (阵亡${data.lost}人)\n`;
+    });
+
+    text += '敌方伤亡:\n';
+    Object.entries(r.enemyCasualties).forEach(([name, data]) => {
+      const status = data.remaining === 0 ? '全灭' : `剩余${data.remaining}人`;
+      text += `  - ${name} [${data.unit}]: ${status}\n`;
+    });
+
+    if (r.result === 'victory') {
+      text += '获得奖励:\n';
+      text += `  - 经验: ${r.rewards.exp}\n`;
+      text += `  - 金币: ${r.rewards.gold}\n`;
+    }
+
+    text += '[/战斗结果]';
+    return text;
+  }
+}
+
+/* ========== 全局实例 ========== */
+window.battleManager = new BattleManager();
+
+/* ========== 结束战斗按钮处理 ========== */
+document.getElementById('endBattleBtn').addEventListener('click', () => {
+  const resultText = window.battleManager.generateResultText();
+
+  /* 发送战斗结果作为用户消息 */
+  const sendInput = document.getElementById('send_textarea');
+  if (sendInput) {
+    sendInput.value = resultText;
+    const sendBtn = document.getElementById('send_but');
+    if (sendBtn) sendBtn.click();
+  }
+
+  /* 关闭战斗UI */
+  window.battleManager.hideBattleUI();
+
+  /* 更新变量中的军队状态 */
+  /* TODO: 实现变量更新 */
+});
+
+/* ========== 监听战斗触发 ========== */
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const text = node.textContent || '';
+        if (text.includes('[开始战斗]')) {
+          /* 解析战斗配置 */
+          parseBattleConfig(text);
+        }
+      }
+    });
+  });
+});
+
+/* 观察聊天消息区域 */
+const chatContainer = document.getElementById('chat');
+if (chatContainer) {
+  observer.observe(chatContainer, { childList: true, subtree: true });
+}
+
+/* 解析战斗配置 */
+function parseBattleConfig(text) {
+  const configMatch = text.match(/\[战斗配置\]([\s\S]*?)\[\/战斗配置\]/);
+  if (!configMatch) return;
+
+  const configText = configMatch[1];
+
+  /* 简单解析（后续可改用更完善的YAML解析） */
+  const enemies = [];
+  const dialogues = [];
+
+  /* 解析敌方 */
+  const enemyMatches = configText.matchAll(/将领:\s*(.+?)\n\s*部队:\s*(.+?),\s*数量:\s*(\d+)/g);
+  let enemyIndex = 0;
+  for (const match of enemyMatches) {
+    enemies.push({
+      id: `enemy_${enemyIndex++}`,
+      name: match[1].trim(),
+      unit: {
+        type: match[2].trim(),
+        count: parseInt(match[3]),
+      },
+      skills: [],
+    });
+  }
+
+  /* 解析对话 */
+  const dialogueSection = configText.match(/预设对话:([\s\S]*?)(?=$|\n\n)/);
+  if (dialogueSection) {
+    const dialogueMatches = dialogueSection[1].matchAll(
+      /触发:\s*(.+?)\n\s*说话者:\s*(.+?)\n\s*对话:\s*"(.+?)"/g
+    );
+    for (const match of dialogueMatches) {
+      const dialogue = {
+        trigger: match[1].trim(),
+        speaker: match[2].trim(),
+        text: match[3].trim(),
+      };
+
+      /* 检查回应 */
+      const responseMatch = configText.match(
+        new RegExp(`对话:\\s*"${match[3]}"\\s*\n\\s*回应者:\\s*(.+?)\\n\\s*回应:\\s*"(.+?)"`)
+      );
+      if (responseMatch) {
+        dialogue.responder = responseMatch[1].trim();
+        dialogue.response = responseMatch[2].trim();
+      }
+
+      dialogues.push(dialogue);
+    }
+  }
+
+  /* 获取我方军队数据 */
+  const statData = _.get(window, 'Mvu.statData', {});
+  const allyCommanders = _.get(statData, 'army.commanders', []);
+
+  if (enemies.length > 0 && allyCommanders.length > 0) {
+    window.battleManager.initBattle(allyCommanders, enemies, dialogues);
+  }
+}
+
+/* ========== 更新状态栏显示 ========== */
+function updateStatusBar() {
+  const statData = _.get(window, 'Mvu.statData', {});
+  const commanders = _.get(statData, 'army.commanders', []);
+  const resources = _.get(statData, 'resources', {});
+
+  const armyInfo = document.getElementById('armyInfo');
+  if (armyInfo) {
+    armyInfo.innerHTML = commanders.map(c => `
+      <div class="commander-mini">
+        <div class="mini-portrait" style="background-image: url('${c.cardCustomization?.portrait || 'https://placehold.co/30x30/4a5568/ffffff'}')"></div>
+        <div class="mini-info">
+          <div>${c.name}</div>
+          <div>[${c.unit.type}×${c.unit.currentCount}]</div>
+        </div>
+      </div>
+    `).join('') + `
+      <div class="commander-mini">
+        <div class="mini-info">
+          <div>金币: ${resources.gold || 0}</div>
+          <div>补给: ${resources.supplies || 0}</div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+/* 初始化状态栏 */
+updateStatusBar();
+
+/* 定期更新状态栏 */
+setInterval(updateStatusBar, 5000);
+</script>
