@@ -41,6 +41,12 @@
                 <Icon name="info" size="sm" class="system-icon" />
                 <span class="system-text">{{ message.content }}</span>
               </div>
+
+              <!-- Player Action -->
+              <div v-else-if="message.type === 'action'" class="action-message">
+                <Icon name="chevronRight" size="sm" class="action-msg-icon" />
+                <span class="action-msg-text">{{ message.content }}</span>
+              </div>
             </div>
           </TransitionGroup>
 
@@ -143,7 +149,7 @@ import { useBattleStore } from '@/stores/battleStore'
 import { useUIStore } from '@/stores/uiStore'
 
 // Services
-import { generateOnly, parseOptions, parseBattleConfig } from '@/services/MessageService'
+import { generateWithContext, parseOptions, parseBattleConfig } from '@/services/MessageService'
 
 // Store refs
 const gameStore = useGameStore()
@@ -184,15 +190,18 @@ const submitCustomAction = async () => {
   const action = customInput.value.trim()
   customInput.value = ''
 
+  // 获取当前故事历史（用于上下文）
+  const currentHistory = [...storyMessages.value]
+
   // 在 UI 内显示用户行动
-  gameStore.addNarration(`*你决定${action}。*`)
+  gameStore.addMessage({ type: 'action', content: action })
   scrollToBottom()
 
   uiStore.setLoading(true, '正在生成...')
 
   try {
-    // 仅获取 AI 生成，不创建外部消息
-    const response = await generateOnly(action)
+    // 带上下文生成，不创建外部消息
+    const response = await generateWithContext(action, currentHistory)
 
     // 处理AI回复（显示在 UI 内）
     processResponse(response)
@@ -544,6 +553,33 @@ onMounted(() => {
       font-size: var(--text-sm);
       color: var(--info-light);
       line-height: var(--leading-normal);
+    }
+  }
+
+  // Player action style
+  &.action {
+    .action-message {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: rgba(var(--gold-primary-rgb), 0.1);
+      border: 1px solid rgba(var(--gold-primary-rgb), 0.3);
+      border-radius: var(--radius-md);
+      margin-left: auto;
+      max-width: 85%;
+    }
+
+    .action-msg-icon {
+      flex-shrink: 0;
+      color: var(--gold-primary);
+    }
+
+    .action-msg-text {
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      color: var(--gold-bright);
+      font-weight: 500;
     }
   }
 }

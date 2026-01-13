@@ -65,6 +65,50 @@ export async function generateOnly(userInput) {
 }
 
 /**
+ * 带上下文的AI生成，不创建外部消息
+ * @param {string} userInput - 用户输入内容
+ * @param {Array} storyHistory - 故事历史消息数组
+ * @returns {Promise<string>} AI回复内容
+ */
+export async function generateWithContext(userInput, storyHistory = []) {
+  try {
+    // 构建上下文提示词
+    let contextPrompt = ''
+
+    if (storyHistory.length > 0) {
+      contextPrompt = '【当前剧情回顾】\n'
+
+      // 只取最近的消息避免过长（最多10条）
+      const recentMessages = storyHistory.slice(-10)
+
+      recentMessages.forEach(msg => {
+        if (msg.type === 'narration') {
+          contextPrompt += msg.content + '\n\n'
+        } else if (msg.type === 'dialogue') {
+          contextPrompt += `${msg.speaker}："${msg.content}"\n\n`
+        } else if (msg.type === 'action') {
+          contextPrompt += `*玩家行动：${msg.content}*\n\n`
+        } else if (msg.type === 'system') {
+          contextPrompt += `[系统：${msg.content}]\n\n`
+        }
+      })
+
+      contextPrompt += '【玩家当前行动】\n'
+    }
+
+    const fullPrompt = contextPrompt + userInput
+
+    const response = await window.TavernHelper.generate({
+      user_input: fullPrompt
+    })
+    return response
+  } catch (error) {
+    console.error('[MessageService] 带上下文生成失败:', error)
+    throw error
+  }
+}
+
+/**
  * 加载历史消息
  * @param {string} range - 消息范围，默认为全部
  * @returns {Promise<Array>} 消息列表
@@ -149,6 +193,7 @@ export function parseBattleConfig(response) {
 export default {
   sendMessage,
   generateOnly,
+  generateWithContext,
   loadHistoryMessages,
   parseOptions,
   parseBattleConfig
