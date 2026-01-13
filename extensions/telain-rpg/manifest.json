@@ -1,0 +1,11 @@
+{
+  "display_name": "Telain RPG",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "dist/telain-rpg.umd.js",
+  "css": "dist/style.css",
+  "author": "TianyiZhuge",
+  "version": "1.0.0",
+  "description": "An independent RPG frontend for Telain Continent, using SillyTavern as backend"
+}

@@ -139,7 +139,7 @@ export default (_env, argv) => ({
       'vue-router': 'VueRouter',
       yaml: 'YAML',
       zod: 'z',
-      pinia: 'Pinia',
+      // pinia 不是全局变量，将从 CDN 加载
     };
 
     if (request in globals) {
