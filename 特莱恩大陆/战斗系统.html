@@ -282,6 +282,110 @@
   background: linear-gradient(180deg, #a569bd, #9b59b6);
 }
 
+/* ========== 补兵界面 ========== */
+.recruit-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 10001;
+  justify-content: center;
+  align-items: center;
+}
+
+.recruit-panel {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #0f3460;
+  border-radius: 12px;
+  padding: 25px;
+  min-width: 400px;
+  max-width: 500px;
+  color: #e0e0e0;
+}
+
+.recruit-panel h2 {
+  text-align: center;
+  color: #ffd43b;
+  margin-bottom: 15px;
+}
+
+.recruit-list {
+  margin: 15px 0;
+}
+
+.recruit-item {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recruit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recruit-info strong {
+  color: #74c0fc;
+}
+
+.recruit-info span {
+  font-size: 12px;
+  color: #888;
+}
+
+.recruit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.recruit-actions input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: white;
+  text-align: center;
+}
+
+.recruit-actions button {
+  padding: 6px 15px;
+  background: linear-gradient(180deg, #27ae60, #1e8449);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.recruit-actions button:hover {
+  background: linear-gradient(180deg, #2ecc71, #27ae60);
+}
+
+.recruit-panel > button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: linear-gradient(180deg, #7f8c8d, #6c7a7d);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.recruit-panel > button:hover {
+  background: linear-gradient(180deg, #95a5a6, #7f8c8d);
+}
+
 /* ========== 状态栏入口按钮 ========== */
 .battle-status-bar {
   padding: 10px;
@@ -365,6 +469,7 @@
 <div class="battle-status-bar">
   <div class="army-info" id="armyInfo"></div>
   <div class="status-buttons">
+    <button class="status-btn" id="recruitBtn" onclick="showRecruitPanel()">补充兵员</button>
     <button class="status-btn" id="editCardBtn">编辑卡面</button>
   </div>
 </div>
@@ -971,9 +1076,176 @@ class BattleManager {
 /* ========== 全局实例 ========== */
 window.battleManager = new BattleManager();
 
+/* ========== 战后系统 ========== */
+
+/* 应用战斗结果到变量 */
+function applyBattleResults() {
+  const bm = window.battleManager;
+  if (!bm.battleResult) return;
+
+  const statData = _.get(window, 'Mvu.statData', {});
+  const r = bm.battleResult;
+
+  /* 更新我方部队伤亡 */
+  Object.entries(r.ourCasualties).forEach(([name, data]) => {
+    const commander = statData.army?.commanders?.find(c => c.name === name);
+    if (commander) {
+      commander.unit.currentCount = data.remaining;
+    }
+  });
+
+  /* 应用奖励 */
+  if (r.result === 'victory' && r.rewards) {
+    statData.resources = statData.resources || {};
+    statData.resources.gold = (statData.resources.gold || 0) + r.rewards.gold;
+
+    /* 更新进度 */
+    statData.progress = statData.progress || {};
+    statData.progress.totalBattles = (statData.progress.totalBattles || 0) + 1;
+    statData.progress.victories = (statData.progress.victories || 0) + 1;
+  } else {
+    /* 战败也计入总战斗次数 */
+    statData.progress = statData.progress || {};
+    statData.progress.totalBattles = (statData.progress.totalBattles || 0) + 1;
+  }
+
+  /* 触发MVU更新 */
+  if (window.Mvu && window.Mvu.updateView) {
+    window.Mvu.updateView();
+  }
+}
+
+/* 补兵系统 - 计算补兵费用 */
+function getRecruitCost(unitType) {
+  const UNIT_COSTS = {
+    '剑士': { gold: 10, supplies: 1 },
+    '长枪兵': { gold: 12, supplies: 1 },
+    '弓箭手': { gold: 15, supplies: 1 },
+    '骑兵': { gold: 25, supplies: 2 },
+    '法师': { gold: 30, supplies: 2 },
+    '牧师': { gold: 28, supplies: 2 },
+  };
+  return UNIT_COSTS[unitType] || { gold: 10, supplies: 1 };
+}
+
+/* 补兵系统 - 执行补兵 */
+function recruitSoldiers(commanderIndex, count) {
+  const statData = _.get(window, 'Mvu.statData', {});
+  const commander = statData.army?.commanders?.[commanderIndex];
+  if (!commander) return { success: false, message: '将领不存在' };
+
+  const unit = commander.unit;
+  const maxRecruit = unit.maxCount - unit.currentCount;
+  const actualCount = Math.min(count, maxRecruit);
+
+  if (actualCount <= 0) return { success: false, message: '部队已满员' };
+
+  const cost = getRecruitCost(unit.type);
+  const totalGold = cost.gold * actualCount;
+  const totalSupplies = cost.supplies * actualCount;
+
+  const resources = statData.resources || {};
+  if (resources.gold < totalGold) return { success: false, message: '金币不足' };
+  if (resources.supplies < totalSupplies) return { success: false, message: '补给不足' };
+
+  /* 扣除资源 */
+  resources.gold -= totalGold;
+  resources.supplies -= totalSupplies;
+
+  /* 增加兵员 */
+  unit.currentCount += actualCount;
+  unit.frontRowHp = getUnitHp(unit.type); /* 新兵满HP */
+
+  /* 触发MVU更新 */
+  if (window.Mvu && window.Mvu.updateView) {
+    window.Mvu.updateView();
+  }
+
+  return { success: true, message: `成功招募${actualCount}名${unit.type}` };
+}
+
+/* 获取兵种HP */
+function getUnitHp(unitType) {
+  const UNIT_HP = {
+    '剑士': 15, '长枪兵': 12, '弓箭手': 10,
+    '骑兵': 18, '法师': 8, '牧师': 10,
+  };
+  return UNIT_HP[unitType] || 10;
+}
+
+/* 显示补兵界面 */
+function showRecruitPanel() {
+  const statData = _.get(window, 'Mvu.statData', {});
+  const commanders = statData.army?.commanders || [];
+  const resources = statData.resources || {};
+
+  let html = `
+    <div class="recruit-panel">
+      <h2>补充兵员</h2>
+      <p>金币: ${resources.gold || 0} | 补给: ${resources.supplies || 0}</p>
+      <div class="recruit-list">
+  `;
+
+  commanders.forEach((c, index) => {
+    const cost = getRecruitCost(c.unit.type);
+    const missing = c.unit.maxCount - c.unit.currentCount;
+    html += `
+      <div class="recruit-item">
+        <div class="recruit-info">
+          <strong>${c.name}</strong>
+          <span>[${c.unit.type}] ${c.unit.currentCount}/${c.unit.maxCount}</span>
+          <span>费用: ${cost.gold}金币 + ${cost.supplies}补给/人</span>
+        </div>
+        <div class="recruit-actions">
+          <input type="number" id="recruit_${index}" min="0" max="${missing}" value="${Math.min(missing, 5)}" />
+          <button onclick="doRecruit(${index})">补充</button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+      <button onclick="closeRecruitPanel()">关闭</button>
+    </div>
+  `;
+
+  let panel = document.getElementById('recruitPanelContainer');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'recruitPanelContainer';
+    panel.className = 'recruit-overlay';
+    document.body.appendChild(panel);
+  }
+  panel.innerHTML = html;
+  panel.style.display = 'flex';
+}
+
+function doRecruit(commanderIndex) {
+  const input = document.getElementById(`recruit_${commanderIndex}`);
+  const count = parseInt(input.value) || 0;
+  const result = recruitSoldiers(commanderIndex, count);
+  alert(result.message);
+  if (result.success) {
+    showRecruitPanel(); /* 刷新界面 */
+    updateStatusBar();
+  }
+}
+
+function closeRecruitPanel() {
+  const panel = document.getElementById('recruitPanelContainer');
+  if (panel) panel.style.display = 'none';
+}
+
+/* 暴露给全局使用 */
+window.showRecruitPanel = showRecruitPanel;
+
 /* ========== 结束战斗按钮处理 ========== */
 document.getElementById('endBattleBtn').addEventListener('click', () => {
   const resultText = window.battleManager.generateResultText();
+
+  /* 应用战斗结果到变量 */
+  applyBattleResults();
 
   /* 发送战斗结果作为用户消息 */
   const sendInput = document.getElementById('send_textarea');
@@ -986,8 +1258,8 @@ document.getElementById('endBattleBtn').addEventListener('click', () => {
   /* 关闭战斗UI */
   window.battleManager.hideBattleUI();
 
-  /* 更新变量中的军队状态 */
-  /* TODO: 实现变量更新 */
+  /* 更新状态栏 */
+  updateStatusBar();
 });
 
 /* ========== 监听战斗触发 ========== */
