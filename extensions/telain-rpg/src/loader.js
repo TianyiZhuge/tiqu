@@ -1,61 +1,61 @@
 /**
  * 特莱恩大陆RPG - 酒馆助手加载器
- * 此脚本用于在TavernHelper_scripts中自动加载RPG前端
+ * 通过TavernRegex将<TelainUI>标签替换为游戏界面iframe
  */
 
-// 配置
-const CONFIG = {
-  // HTML文件CDN地址
-  htmlUrl: 'https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/extensions/telain-rpg/dist/index.html',
-  // iframe容器ID
-  containerId: 'telain-rpg-container',
-  // iframe ID
-  iframeId: 'telain-rpg-iframe'
-};
-
-// 创建并插入iframe
-function loadTelainRPG() {
-  // 检查是否已加载
-  if (document.getElementById(CONFIG.iframeId)) {
-    console.log('[Telain RPG] Already loaded');
+(async function() {
+  const TH = window.TavernHelper;
+  if (!TH) {
+    console.error('[Telain RPG] TavernHelper not found');
     return;
   }
 
-  // 获取酒馆助手的iframe容器
-  const targetContainer = document.querySelector('#tavern-helper-iframe-container')
-    || document.querySelector('.tavern-helper-content')
-    || document.body;
+  // 游戏UI的CDN地址
+  const UI_URL = 'https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/extensions/telain-rpg/dist/index.html';
 
-  // 创建容器
-  const container = document.createElement('div');
-  container.id = CONFIG.containerId;
-  container.style.cssText = `
-    width: 100%;
-    height: 100%;
-    position: relative;
-  `;
+  // 注册TavernRegex，将<TelainUI>替换为iframe
+  const regex = {
+    findRegex: '<TelainUI\\s*/?>',
+    replaceString: `<div class="telain-rpg-container" style="width:100%;min-height:500px;"><iframe src="${UI_URL}" style="width:100%;height:600px;border:none;border-radius:8px;" allowfullscreen></iframe></div>`,
+    placement: [1], // AI_OUTPUT
+    markdownOnly: true,
+    promptOnly: false,
+    runOnEdit: true,
+    substituteRegex: 0,
+  };
 
-  // 创建iframe
-  const iframe = document.createElement('iframe');
-  iframe.id = CONFIG.iframeId;
-  iframe.src = CONFIG.htmlUrl;
-  iframe.style.cssText = `
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: transparent;
-  `;
+  try {
+    // 使用TavernHelper API注册regex
+    await TH.updateTavernRegexesWith((regexes) => {
+      // 移除旧的同名regex
+      const filtered = regexes.filter(r => r.script_name !== 'TelainRPG-UI');
+      // 添加新的regex
+      filtered.push({
+        id: 'telain-rpg-ui-' + Date.now(),
+        script_name: 'TelainRPG-UI',
+        enabled: true,
+        run_on_edit: true,
+        scope: 'global',
+        find_regex: regex.findRegex,
+        replace_string: regex.replaceString,
+        source: {
+          user_input: false,
+          ai_output: true,
+          slash_command: false,
+          world_info: false,
+        },
+        destination: {
+          display: true,
+          prompt: false,
+        },
+        min_depth: null,
+        max_depth: null,
+      });
+      return filtered;
+    }, { scope: 'global' });
 
-  // 组装DOM
-  container.appendChild(iframe);
-  targetContainer.appendChild(container);
-
-  console.log('[Telain RPG] Loaded successfully');
-}
-
-// 在DOM准备好后执行
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadTelainRPG);
-} else {
-  loadTelainRPG();
-}
+    console.log('[Telain RPG] TavernRegex registered successfully');
+  } catch (e) {
+    console.error('[Telain RPG] Failed to register TavernRegex:', e);
+  }
+})();
