@@ -1,0 +1,56 @@
+# 特莱恩大陆 - 打包配置
+# nova-creator-cli 角色卡打包配置文件
+
+name: 特莱恩大陆
+version: 1.0.0
+description: |
+  一个带有独立战斗系统的互动式奇幻RPG角色卡。
+  日式西幻风格的世界观，国王恩赐式的战斗系统。
+
+# 角色卡基本信息
+card:
+  name: 特莱恩大陆
+  creator: TianyiZhuge
+  character_version: "1.0"
+  tags:
+    - RPG
+    - 战斗系统
+    - 奇幻
+    - 互动式
+    - 独立战斗引擎
+
+# 文件组装顺序
+files:
+  # 系统提示词
+  system_prompt:
+    - 系统提示词.xyaml
+    - 背景设定.xyaml
+    - 玩家角色_{{user}}.xyaml
+
+  # 变量系统
+  schema:
+    - 变量结构.js
+
+  init_variables:
+    - "[initvar]变量初始化.xyaml"
+
+  mvu_update:
+    - "[mvu_update]变量更新规则.xyaml"
+    - "[mvu_update]变量输出格式.xyaml"
+
+  # 状态栏（战斗系统HTML）
+  status_bar:
+    - 战斗系统.html
+
+  # 游戏数据（作为附加资源）
+  resources:
+    - 游戏数据.js
+
+  # 开场白
+  first_message:
+    - 开场白.md
+
+# 输出配置
+output:
+  filename: 特莱恩大陆.json
+  format: sillytavern_v2
