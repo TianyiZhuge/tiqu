@@ -143,7 +143,7 @@ import { useBattleStore } from '@/stores/battleStore'
 import { useUIStore } from '@/stores/uiStore'
 
 // Services
-import { sendMessage, parseOptions, parseBattleConfig } from '@/services/MessageService'
+import { generateOnly, parseOptions, parseBattleConfig } from '@/services/MessageService'
 
 // Store refs
 const gameStore = useGameStore()
@@ -184,22 +184,26 @@ const submitCustomAction = async () => {
   const action = customInput.value.trim()
   customInput.value = ''
 
+  // 在 UI 内显示用户行动
+  gameStore.addNarration(`*你决定${action}。*`)
+  scrollToBottom()
+
   uiStore.setLoading(true, '正在生成...')
 
   try {
-    // 调用 TavernHelper API 发送消息
-    const response = await sendMessage(action)
+    // 仅获取 AI 生成，不创建外部消息
+    const response = await generateOnly(action)
 
-    // 处理AI回复
+    // 处理AI回复（显示在 UI 内）
     processResponse(response)
 
   } catch (error) {
-    console.error('[MainView] 发送消息失败:', error)
+    console.error('[MainView] 生成失败:', error)
     // 显示错误提示
-    gameStore.addSystemMessage('消息发送失败，请重试')
+    gameStore.addSystemMessage('生成失败，请重试')
     uiStore.addNotification({
       type: 'error',
-      message: '发送失败: ' + (error.message || '未知错误')
+      message: '生成失败: ' + (error.message || '未知错误')
     })
   } finally {
     uiStore.setLoading(false)
