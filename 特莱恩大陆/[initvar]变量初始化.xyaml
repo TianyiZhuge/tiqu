@@ -1,0 +1,80 @@
+<stat_data>
+army:
+  commanders:
+    - id: "commander_player"
+      name: "{{user}}"
+      title: "年轻的指挥官"
+      profession: "骑士"
+      level: 1
+      attributes:
+        leadership: 12
+        tactics: 8
+        bravery: 10
+      skills:
+        - "鼓舞"
+      unit:
+        type: "剑士"
+        currentCount: 20
+        maxCount: 24
+        frontRowHp: 15
+      cardCustomization:
+        frame: "elite"
+
+resources:
+  gold: 100
+  supplies: 10
+
+battle_config:
+  enemies: []
+  winCondition: "击败所有敌人"
+  specialRules: ""
+  dialogues: []
+
+battle_state:
+  inBattle: false
+  currentTurn: 0
+  result: "none"
+  ourCasualties: {}
+  enemyCasualties: {}
+  rewards:
+    exp: 0
+    gold: 0
+    items: []
+
+card_customization:
+  ally_commanders: {}
+  enemy_portraits:
+    "哥布林头目":
+      portrait: "https://placehold.co/100x100/2d5a27/ffffff?text=头目"
+      frame: "normal"
+    "狼骑士":
+      portrait: "https://placehold.co/100x100/5a4a3a/ffffff?text=狼骑"
+      frame: "elite"
+    "兽人队长":
+      portrait: "https://placehold.co/100x100/5a3a2a/ffffff?text=兽人"
+      frame: "elite"
+    "亡灵法师":
+      portrait: "https://placehold.co/100x100/3a3a3a/ffffff?text=亡灵"
+      frame: "legendary"
+    "暗影领主":
+      portrait: "https://placehold.co/100x100/1a1a2a/ffffff?text=暗影"
+      frame: "legendary"
+  unit_icons:
+    "剑士": "https://placehold.co/80x80/4a5568/ffffff?text=剑"
+    "长枪兵": "https://placehold.co/80x80/4a5568/ffffff?text=枪"
+    "弓箭手": "https://placehold.co/80x80/4a5568/ffffff?text=弓"
+    "骑兵": "https://placehold.co/80x80/4a5568/ffffff?text=骑"
+    "法师": "https://placehold.co/80x80/4a5568/ffffff?text=法"
+    "牧师": "https://placehold.co/80x80/4a5568/ffffff?text=牧"
+    "哥布林": "https://placehold.co/80x80/2d5a27/ffffff?text=哥"
+    "哥布林弓手": "https://placehold.co/80x80/2d5a27/ffffff?text=弓"
+    "座狼": "https://placehold.co/80x80/5a4a3a/ffffff?text=狼"
+    "兽人": "https://placehold.co/80x80/5a3a2a/ffffff?text=兽"
+    "骷髅兵": "https://placehold.co/80x80/3a3a3a/ffffff?text=骷"
+    "暗影刺客": "https://placehold.co/80x80/1a1a2a/ffffff?text=影"
+
+progress:
+  chapter: 1
+  totalBattles: 0
+  victories: 0
+</stat_data>
