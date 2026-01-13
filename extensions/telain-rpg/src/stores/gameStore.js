@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { sendMessage, parseOptions, parseBattleConfig } from '../services/messageService.js'
+import { sendMessage, parseOptions, parseBattleConfig } from '../services/MessageService.js'
 
 export const useGameStore = defineStore('game', () => {
   // ========== 加载状态 ==========

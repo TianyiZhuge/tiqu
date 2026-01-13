@@ -142,6 +142,9 @@ import { useGameStore } from '@/stores/gameStore'
 import { useBattleStore } from '@/stores/battleStore'
 import { useUIStore } from '@/stores/uiStore'
 
+// Services
+import { sendMessage, parseOptions, parseBattleConfig } from '@/services/MessageService'
+
 // Store refs
 const gameStore = useGameStore()
 const battleStore = useBattleStore()
@@ -169,18 +172,12 @@ const formatText = (text) => {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
 }
 
-const selectAction = async (option) => {
-  uiStore.setLoading(true, '正在生成...')
-
-  // Simulate LLM response (placeholder)
-  await new Promise(resolve => setTimeout(resolve, 1500))
-
-  gameStore.addNarration(`你选择了"${option.label}"。\n\n*这是一个模拟的叙事响应。在实际游戏中，这里会显示LLM生成的内容。*`)
-
-  uiStore.setLoading(false)
-  scrollToBottom()
+// 点击选项 -> 填充到输入框
+const selectAction = (option) => {
+  customInput.value = option.action || option.label
 }
 
+// 提交自定义行动
 const submitCustomAction = async () => {
   if (!customInput.value.trim() || isLoading.value) return
 
@@ -189,13 +186,45 @@ const submitCustomAction = async () => {
 
   uiStore.setLoading(true, '正在生成...')
 
-  // Simulate LLM response (placeholder)
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  try {
+    // 调用 TavernHelper API 发送消息
+    const response = await sendMessage(action)
 
-  gameStore.addNarration(`你决定${action}。\n\n*这是一个模拟的叙事响应。*`)
+    // 处理AI回复
+    processResponse(response)
 
-  uiStore.setLoading(false)
-  scrollToBottom()
+  } catch (error) {
+    console.error('[MainView] 发送消息失败:', error)
+    // 显示错误提示
+    gameStore.addSystemMessage('消息发送失败，请重试')
+    uiStore.addNotification({
+      type: 'error',
+      message: '发送失败: ' + (error.message || '未知错误')
+    })
+  } finally {
+    uiStore.setLoading(false)
+    scrollToBottom()
+  }
+}
+
+// 处理AI回复
+const processResponse = (response) => {
+  if (!response) return
+
+  // 添加叙事内容到故事面板
+  gameStore.addNarration(response)
+
+  // 解析选项
+  const newOptions = parseOptions(response)
+  if (newOptions.length > 0) {
+    gameStore.setActionOptions(newOptions)
+  }
+
+  // 检查是否有战斗配置
+  const battleConfig = parseBattleConfig(response)
+  if (battleConfig) {
+    gameStore.setBattleConfig(battleConfig)
+  }
 }
 
 const scrollToBottom = () => {
