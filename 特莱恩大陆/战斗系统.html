@@ -1258,6 +1258,46 @@ function closeRecruitPanel() {
 
 /* 暴露给全局使用 */
 window.showRecruitPanel = showRecruitPanel;
+window.doRecruit = doRecruit;
+window.closeRecruitPanel = closeRecruitPanel;
+
+/* ========== 开始战斗按钮功能 ========== */
+var pendingBattleConfig = null;
+
+function showStartBattleButton(configText) {
+  pendingBattleConfig = configText;
+
+  var btn = document.getElementById('startBattleBtn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'startBattleBtn';
+    btn.className = 'status-btn';
+    btn.style.cssText = 'background: linear-gradient(180deg, #e74c3c, #c0392b); font-size: 16px; padding: 12px 24px; margin: 10px;';
+    btn.textContent = '开始战斗';
+    btn.onclick = function() { startBattleFromConfig(); };
+
+    var statusBar = document.querySelector('.battle-status-bar .status-buttons');
+    if (statusBar) {
+      statusBar.insertBefore(btn, statusBar.firstChild);
+    }
+  }
+  btn.style.display = 'inline-block';
+}
+
+function hideStartBattleButton() {
+  var btn = document.getElementById('startBattleBtn');
+  if (btn) btn.style.display = 'none';
+}
+
+function startBattleFromConfig() {
+  if (pendingBattleConfig) {
+    parseBattleConfig(pendingBattleConfig);
+    hideStartBattleButton();
+    pendingBattleConfig = null;
+  }
+}
+
+window.startBattleFromConfig = startBattleFromConfig;
 
 /* ========== 结束战斗按钮处理 ========== */
 document.getElementById('endBattleBtn').addEventListener('click', () => {
@@ -1287,9 +1327,11 @@ const observer = new MutationObserver((mutations) => {
     mutation.addedNodes.forEach((node) => {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const text = node.textContent || '';
-        if (text.includes('[开始战斗]')) {
-          /* 解析战斗配置 */
-          parseBattleConfig(text);
+        /* 匹配多种战斗触发格式 */
+        if (text.includes('[开始战斗]') || text.includes('【战斗开始】') ||
+            text.includes('[战斗开始]') || text.includes('【开始战斗】')) {
+          /* 显示开始战斗按钮，让玩家点击进入战斗UI */
+          showStartBattleButton(text);
         }
       }
     });
@@ -1302,64 +1344,92 @@ if (chatContainer) {
   observer.observe(chatContainer, { childList: true, subtree: true });
 }
 
+/* 初始检查当前页面是否有战斗配置 */
+setTimeout(function() {
+  var messages = document.querySelectorAll('#chat .mes_text');
+  messages.forEach(function(msg) {
+    var text = msg.textContent || '';
+    if ((text.includes('[开始战斗]') || text.includes('【战斗开始】') ||
+         text.includes('[战斗开始]') || text.includes('【开始战斗】')) &&
+        !document.getElementById('startBattleBtn')) {
+      showStartBattleButton(text);
+    }
+  });
+}, 1000);
+
 /* 解析战斗配置 */
 function parseBattleConfig(text) {
-  const configMatch = text.match(/\[战斗配置\]([\s\S]*?)\[\/战斗配置\]/);
-  if (!configMatch) return;
+  var enemies = [];
+  var dialogues = [];
+  var configText = text;
 
-  const configText = configMatch[1];
+  /* 尝试方式1: [战斗配置]...[/战斗配置] 格式 */
+  var configMatch = text.match(/\[战斗配置\]([\s\S]*?)\[\/战斗配置\]/);
+  if (configMatch) {
+    configText = configMatch[1];
 
-  /* 简单解析（后续可改用更完善的YAML解析） */
-  const enemies = [];
-  const dialogues = [];
-
-  /* 解析敌方 */
-  const enemyMatches = configText.matchAll(/将领:\s*(.+?)\n\s*部队:\s*(.+?),\s*数量:\s*(\d+)/g);
-  let enemyIndex = 0;
-  for (const match of enemyMatches) {
-    enemies.push({
-      id: `enemy_${enemyIndex++}`,
-      name: match[1].trim(),
-      unit: {
-        type: match[2].trim(),
-        count: parseInt(match[3]),
-      },
-      skills: [],
-    });
+    /* 解析YAML风格敌方配置 */
+    var enemyMatches = configText.matchAll(/将领:\s*(.+?)\n\s*部队:\s*(.+?),\s*数量:\s*(\d+)/g);
+    var enemyIndex = 0;
+    for (var match of enemyMatches) {
+      enemies.push({
+        id: 'enemy_' + enemyIndex++,
+        name: match[1].trim(),
+        unit: { type: match[2].trim(), count: parseInt(match[3]) },
+        skills: [],
+      });
+    }
   }
 
-  /* 解析对话 */
-  const dialogueSection = configText.match(/预设对话:([\s\S]*?)(?=$|\n\n)/);
+  /* 尝试方式2: 表格格式 (敌方阵容表格) */
+  if (enemies.length === 0) {
+    var tableMatch = text.match(/敌方阵容[：:]([\s\S]*?)(?=胜利条件|当前回合|可用行动|$)/i);
+    if (tableMatch) {
+      var tableText = tableMatch[1];
+      /* 匹配表格行: 将领名 部队类型 数量 HP% */
+      var rowMatches = tableText.matchAll(/([^\|\s]+)\s+([^\|\s]+)\s+(\d+)\s+\d+%/g);
+      var enemyIndex = 0;
+      for (var match of rowMatches) {
+        /* 跳过表头 */
+        if (match[1] === '将领' || match[1] === '|') continue;
+        enemies.push({
+          id: 'enemy_' + enemyIndex++,
+          name: match[1].trim(),
+          unit: { type: match[2].trim(), count: parseInt(match[3]) },
+          skills: [],
+        });
+      }
+    }
+  }
+
+  /* 解析对话 (如果有) */
+  var dialogueSection = configText.match(/预设对话[：:]([\s\S]*?)(?=$|\n\n)/);
   if (dialogueSection) {
-    const dialogueMatches = dialogueSection[1].matchAll(
-      /触发:\s*(.+?)\n\s*说话者:\s*(.+?)\n\s*对话:\s*"(.+?)"/g
+    var dialogueMatches = dialogueSection[1].matchAll(
+      /触发[：:]\s*(.+?)\n\s*说话者[：:]\s*(.+?)\n\s*对话[：:]\s*["""](.+?)["""]/g
     );
-    for (const match of dialogueMatches) {
-      const dialogue = {
+    for (var match of dialogueMatches) {
+      dialogues.push({
         trigger: match[1].trim(),
         speaker: match[2].trim(),
         text: match[3].trim(),
-      };
-
-      /* 检查回应 */
-      const responseMatch = configText.match(
-        new RegExp(`对话:\\s*"${match[3]}"\\s*\n\\s*回应者:\\s*(.+?)\\n\\s*回应:\\s*"(.+?)"`)
-      );
-      if (responseMatch) {
-        dialogue.responder = responseMatch[1].trim();
-        dialogue.response = responseMatch[2].trim();
-      }
-
-      dialogues.push(dialogue);
+      });
     }
   }
 
   /* 获取我方军队数据 */
-  const statData = (window.Mvu && window.Mvu.statData) || {};
-  const allyCommanders = (statData.army && statData.army.commanders) || [];
+  var statData = (window.Mvu && window.Mvu.statData) || {};
+  var allyCommanders = (statData.army && statData.army.commanders) || [];
+
+  console.log('解析到敌人:', enemies);
+  console.log('我方将领:', allyCommanders);
 
   if (enemies.length > 0 && allyCommanders.length > 0) {
     window.battleManager.initBattle(allyCommanders, enemies, dialogues);
+  } else if (enemies.length === 0) {
+    alert('无法解析敌方配置，请检查格式');
+  } else if (allyCommanders.length === 0) {
+    alert('无法获取我方军队数据');
   }
 }
 
