@@ -149,7 +149,7 @@ function createRegexScripts(statusBarPath) {
       id: "0a826eea-6150-4ef8-b31b-0f10f6f12053",
       scriptName: "状态栏",
       findRegex: "<StatusPlaceHolderImpl/>",
-      replaceString: "```\n" + statusBarContent + "\n```",
+      replaceString: statusBarContent,
       trimStrings: [],
       placement: [2],
       disabled: false,
