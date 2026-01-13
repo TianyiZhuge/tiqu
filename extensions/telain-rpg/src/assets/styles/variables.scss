@@ -1,0 +1,101 @@
+// ============================================
+// 特莱恩大陆 - CSS变量定义
+// 日式异世界RPG风格配色
+// ============================================
+
+:root {
+  // ========== 主色 - 深褐色系 ==========
+  --color-primary: #2C1810;
+  --color-primary-light: #4A3728;
+  --color-primary-dark: #1A0E08;
+
+  // ========== 强调色 - 金色系 ==========
+  --color-accent: #D4AF37;
+  --color-accent-light: #F4D03F;
+  --color-accent-dark: #996515;
+
+  // ========== 功能色 ==========
+  --color-success: #4A7C59;
+  --color-danger: #8B0000;
+  --color-warning: #CC7722;
+  --color-info: #4682B4;
+
+  // RGB版本（用于透明度）
+  --color-success-rgb: 74, 124, 89;
+  --color-danger-rgb: 139, 0, 0;
+  --color-warning-rgb: 204, 119, 34;
+  --color-info-rgb: 70, 130, 180;
+
+  // ========== 文字色 ==========
+  --color-text-primary: #E8DCC4;
+  --color-text-secondary: #A89880;
+  --color-text-muted: #6B5B4F;
+
+  // ========== 背景色 ==========
+  --color-bg-primary: #1A0E08;
+  --color-bg-secondary: #2C1810;
+  --color-bg-card: #3D2817;
+  --color-bg-overlay: rgba(0, 0, 0, 0.7);
+
+  // ========== 边框色 ==========
+  --color-border: #5C4033;
+  --color-border-gold: #D4AF37;
+
+  // ========== 渐变 ==========
+  --gradient-parchment: linear-gradient(
+    135deg,
+    #3D2817 0%,
+    #2C1810 50%,
+    #1A0E08 100%
+  );
+
+  --gradient-gold: linear-gradient(
+    180deg,
+    #F4D03F 0%,
+    #D4AF37 50%,
+    #996515 100%
+  );
+
+  --gradient-panel: linear-gradient(
+    180deg,
+    rgba(61, 40, 23, 0.95) 0%,
+    rgba(26, 14, 8, 0.98) 100%
+  );
+
+  // ========== 间距 ==========
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  // ========== 圆角 ==========
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  // ========== 字体 ==========
+  --font-title: 'Cinzel Decorative', 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
+  --font-body: 'Noto Serif SC', 'Source Han Serif CN', serif;
+  --font-ui: 'Spectral', 'Noto Sans SC', sans-serif;
+
+  // ========== 字号 ==========
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+
+  // ========== 阴影 ==========
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px var(--color-accent);
+
+  // ========== 动画 ==========
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
