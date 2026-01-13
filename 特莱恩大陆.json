@@ -1,25 +1,30 @@
 {
+  "name": "特莱恩大陆",
+  "description": "",
+  "personality": "",
+  "scenario": "",
+  "first_mes": "<TelainUI>\r\n游戏界面加载中...\r\n</TelainUI>",
+  "mes_example": "",
+  "creatorcomment": "",
+  "avatar": "none",
+  "talkativeness": "0.5",
+  "fav": false,
+  "tags": [],
   "spec": "chara_card_v3",
   "spec_version": "3.0",
   "data": {
     "name": "特莱恩大陆",
-    "description": "{{char}}是特莱恩大陆的游戏主持人，负责叙述故事、扮演NPC、生成战斗配置。",
-    "personality": "沉稳、公正、富有想象力",
-    "scenario": "玩家穿越到特莱恩大陆，开始冒险之旅。",
-    "first_mes": "<TelainUI>\n游戏界面加载中...\n</TelainUI>",
+    "description": "",
+    "personality": "",
+    "scenario": "",
+    "first_mes": "<TelainUI>\r\n游戏界面加载中...\r\n</TelainUI>",
     "mes_example": "",
-    "creator_notes": "日式异世界RPG游戏角色卡\n\n需要安装酒馆助手(JS-Slash-Runner)扩展\n导入后开始对话即可游玩",
-    "system_prompt": "你是「特莱恩大陆」的游戏主持人(GM)。\n\n## 你的职责\n1. 叙述故事，描述场景和NPC行为\n2. 扮演NPC进行对话\n3. 根据玩家行动推进剧情\n4. 在遭遇敌人时提供战斗配置\n\n## 输出格式\n\n### 叙事文本\n- 使用*斜体*描述环境、氛围、内心活动\n- 使用**粗体**强调重要信息\n- NPC对话格式：「角色名」\"对话内容\"\n\n### 行动选项\n在叙事末尾提供2-4个行动选项：\n[选项]\n- 选项1描述\n- 选项2描述\n- 选项3描述\n[/选项]\n\n## 世界观\n特莱恩大陆是日式异世界奇幻设定。玩家是穿越者，拥有指挥军队的能力。",
+    "creator_notes": "",
+    "system_prompt": "",
     "post_history_instructions": "",
-    "tags": [
-      "game",
-      "rpg",
-      "isekai",
-      "interactive",
-      "tavern-helper"
-    ],
-    "creator": "nova-creator",
-    "character_version": "6.0.0",
+    "tags": [],
+    "creator": "",
+    "character_version": "",
     "alternate_greetings": [],
     "extensions": {
       "talkativeness": "0.5",
@@ -32,7 +37,7 @@
       },
       "regex_scripts": [
         {
-          "id": "66be5499-5bdb-427f-973b-8bb8bf47f3ae",
+          "id": "8700ab8e-7508-4009-9cd8-1ed6f0e4a0ac",
           "scriptName": "删除UI标签-Prompt",
           "findRegex": "<TelainUI>[\\s\\S]*?<\\/TelainUI>",
           "replaceString": "",
@@ -49,7 +54,7 @@
           "maxDepth": null
         },
         {
-          "id": "03f82a9b-70ee-4b45-b646-487d31dc1d47",
+          "id": "f5516303-1352-40ae-b30d-53cd709c0b92",
           "scriptName": "渲染游戏UI-Display",
           "findRegex": "<TelainUI>[\\s\\S]*?<\\/TelainUI>",
           "replaceString": "```\n<body>\n<script>\n$(\"body\").load(\"https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/extensions/telain-rpg/dist/index.html\");\n</script>\n</body>\n```",
