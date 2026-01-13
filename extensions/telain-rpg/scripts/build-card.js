@@ -1,14 +1,15 @@
 /**
- * 特莱恩大陆 - 角色卡构建脚本 v5
- * 使用TavernRegex方案：
+ * 特莱恩大陆 - 角色卡构建脚本 v6
+ * 使用与哥布林巢穴相同的regex_scripts方案：
  * 1. first_mes中使用<TelainUI>占位符
- * 2. TavernHelper_scripts加载loader注册regex
- * 3. regex将<TelainUI>替换为iframe
+ * 2. regex_scripts在显示时替换为代码块包装的HTML
+ * 3. 代码块触发酒馆助手的前端渲染
  */
 
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { randomUUID } from 'crypto'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -39,22 +40,6 @@ const SYSTEM_PROMPT = `你是「特莱恩大陆」的游戏主持人(GM)。
 - 选项3描述
 [/选项]
 
-### 战斗配置（遭遇敌人时）
-\`\`\`json
-{
-  "type": "battle",
-  "enemies": [
-    {"name": "敌人名", "type": "兵种", "count": 10, "atk": 5, "def": 3}
-  ]
-}
-\`\`\`
-
-### 状态变化（获得/失去资源时）
-[状态变化]
-gold: +50
-supplies: -2
-[/状态变化]
-
 ## 世界观
 特莱恩大陆是日式异世界奇幻设定。玩家是穿越者，拥有指挥军队的能力。`
 
@@ -63,19 +48,42 @@ const CDN_BASE = 'https://testingcf.jsdelivr.net/gh/TianyiZhuge/tiqu@master/exte
 
 // ==================== 生成角色卡 ====================
 function generateCharacterCard() {
-  // first_mes使用占位符标签，由TavernRegex替换为iframe
-  const firstMes = '<TelainUI />'
+  // first_mes使用占位符标签
+  const firstMes = '<TelainUI>\n游戏界面加载中...\n</TelainUI>'
 
-  // TavernHelper_scripts配置
-  const tavernHelperScripts = [
+  // 与哥布林巢穴相同的regex_scripts配置
+  const regexScripts = [
     {
-      type: 'script',
-      value: {
-        id: 'telain-rpg-loader',
-        name: '特莱恩大陆RPG',
-        content: `import '${CDN_BASE}/src/loader.js'`,
-        enabled: true
-      }
+      // 从prompt中删除<TelainUI>标签（发送给AI时不包含）
+      id: randomUUID(),
+      scriptName: '删除UI标签-Prompt',
+      findRegex: '<TelainUI>[\\s\\S]*?<\\/TelainUI>',
+      replaceString: '',
+      trimStrings: [],
+      placement: [2], // AI_OUTPUT for prompt
+      disabled: false,
+      markdownOnly: false,
+      promptOnly: true,  // 只影响prompt
+      runOnEdit: true,
+      substituteRegex: 0,
+      minDepth: null,
+      maxDepth: null
+    },
+    {
+      // 在显示时替换为代码块包装的HTML（触发酒馆助手渲染）
+      id: randomUUID(),
+      scriptName: '渲染游戏UI-Display',
+      findRegex: '<TelainUI>[\\s\\S]*?<\\/TelainUI>',
+      replaceString: '```\n<body>\n<script>\n$("body").load("' + CDN_BASE + '/dist/index.html");\n</script>\n</body>\n```',
+      trimStrings: [],
+      placement: [2], // AI_OUTPUT for display
+      disabled: false,
+      markdownOnly: true,  // 只影响显示
+      promptOnly: false,
+      runOnEdit: false,
+      substituteRegex: 0,
+      minDepth: null,
+      maxDepth: null
     }
   ]
 
@@ -94,13 +102,15 @@ function generateCharacterCard() {
       post_history_instructions: '',
       tags: ['game', 'rpg', 'isekai', 'interactive', 'tavern-helper'],
       creator: 'nova-creator',
-      character_version: '5.0.0',
+      character_version: '6.0.0',
+      alternate_greetings: [],
       extensions: {
         talkativeness: '0.5',
         fav: false,
         world: '',
-        depth_prompt: { prompt: '', depth: 4 },
-        TavernHelper_scripts: tavernHelperScripts
+        depth_prompt: { prompt: '', depth: 4, role: 'system' },
+        // 关键：使用与哥布林巢穴相同的regex_scripts字段
+        regex_scripts: regexScripts
       }
     }
   }
@@ -108,8 +118,8 @@ function generateCharacterCard() {
 
 // ==================== 主函数 ====================
 function main() {
-  console.log('Building Telain RPG character card v5...')
-  console.log('Strategy: TavernRegex placeholder replacement')
+  console.log('Building Telain RPG character card v6...')
+  console.log('Strategy: regex_scripts (same as GoblinGame)')
   console.log('')
 
   // 确保dist目录存在
@@ -127,12 +137,13 @@ function main() {
   const rootOutputPath = path.resolve(ROOT_DIR, '..', '..', '特莱恩大陆.json')
   fs.writeFileSync(rootOutputPath, JSON.stringify(card, null, 2), 'utf-8')
 
+  console.log('regex_scripts configured:')
+  console.log('  1. 删除UI标签-Prompt: removes <TelainUI> from prompt')
+  console.log('  2. 渲染游戏UI-Display: replaces with code block for rendering')
+  console.log('')
   console.log('Output files:')
   console.log(`  ${outputPath}`)
   console.log(`  ${rootOutputPath}`)
-  console.log('')
-  console.log('Loader script URL:')
-  console.log(`  ${CDN_BASE}/src/loader.js`)
   console.log('')
   console.log('UI HTML URL:')
   console.log(`  ${CDN_BASE}/dist/index.html`)
