@@ -1,56 +1,90 @@
-# 特莱恩大陆 - 打包配置
-# nova-creator-cli 角色卡打包配置文件
+# 特莱恩大陆 - 角色卡打包配置
+# 使用方法: node build-card.js 特莱恩大陆/特莱恩大陆.yaml
 
+# 基础信息
 name: 特莱恩大陆
-version: 1.0.0
-description: |
-  一个带有独立战斗系统的互动式奇幻RPG角色卡。
-  日式西幻风格的世界观，国王恩赐式的战斗系统。
+creator: TianyiZhuge
+character_version: "1.0"
 
-# 角色卡基本信息
-card:
+# 主要字段映射
+# 多角色/世界型作品: description为空，各设定写入character_book
+fields:
+  description: ""
+  personality: ""
+  scenario: ""
+  first_mes: 特莱恩大陆/开场白.md
+  mes_example: ""
+  creator_notes: ""
+  system_prompt: 特莱恩大陆/系统提示词.xyaml
+  post_history_instructions: ""
+
+# 扩展字段
+extensions:
+  talkativeness: "0.5"
+  fav: false
+  world: 特莱恩大陆
+
+  # 状态栏文件路径（战斗系统HTML）
+  status_bar: 特莱恩大陆/战斗系统.html
+
+# 脚本配置
+scripts:
+  # 变量结构设计脚本（Zod Schema）
+  - name: "变量结构设计"
+    content: 特莱恩大陆/变量结构.js
+    enabled: true
+
+  # 游戏数据（兵种、技能、敌人模板）
+  - name: "游戏数据"
+    content: 特莱恩大陆/游戏数据.js
+    enabled: true
+
+# 角色书配置
+character_book:
   name: 特莱恩大陆
-  creator: TianyiZhuge
-  character_version: "1.0"
-  tags:
-    - RPG
-    - 战斗系统
-    - 奇幻
-    - 互动式
-    - 独立战斗引擎
 
-# 文件组装顺序
-files:
-  # 系统提示词
-  system_prompt:
-    - 系统提示词.xyaml
-    - 背景设定.xyaml
-    - 玩家角色_{{user}}.xyaml
+  entries:
+    # [InitVar]初始化条目 - 保持关闭状态
+    - comment: "[initvar]变量初始化"
+      content: 特莱恩大陆/[initvar]变量初始化.xyaml
+      enabled: false
+      position: before_char
+      insertion_order: 101
+      depth: 4
+      role: 0
 
-  # 变量系统
-  schema:
-    - 变量结构.js
+    # 变量更新规则 - 永久、@D系统、深度1、顺序1
+    - comment: "[mvu_update]变量更新规则"
+      content: 特莱恩大陆/[mvu_update]变量更新规则.xyaml
+      enabled: true
+      position: at_depth
+      insertion_order: 1
+      depth: 1
+      role: 0
 
-  init_variables:
-    - "[initvar]变量初始化.xyaml"
+    # 变量输出格式 - 永久、@D系统、深度1、顺序2
+    - comment: "[mvu_update]变量输出格式"
+      content: 特莱恩大陆/[mvu_update]变量输出格式.xyaml
+      enabled: true
+      position: at_depth
+      insertion_order: 2
+      depth: 1
+      role: 0
 
-  mvu_update:
-    - "[mvu_update]变量更新规则.xyaml"
-    - "[mvu_update]变量输出格式.xyaml"
+    # 背景设定 - 永久、角色定义之前、顺序1
+    - comment: "背景设定"
+      content: 特莱恩大陆/背景设定.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 1
+      depth: 4
+      role: 0
 
-  # 状态栏（战斗系统HTML）
-  status_bar:
-    - 战斗系统.html
-
-  # 游戏数据（作为附加资源）
-  resources:
-    - 游戏数据.js
-
-  # 开场白
-  first_message:
-    - 开场白.md
-
-# 输出配置
-output:
-  filename: 特莱恩大陆.json
-  format: sillytavern_v2
+    # 玩家角色 - 永久、角色定义之前、顺序2
+    - comment: "玩家角色_{{user}}"
+      content: 特莱恩大陆/玩家角色_{{user}}.xyaml
+      enabled: true
+      position: before_char
+      insertion_order: 2
+      depth: 4
+      role: 0
