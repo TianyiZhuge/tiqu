@@ -25,7 +25,8 @@ html {
 // ═══════════════════════════════════════════
 .telain-container {
   width: 100%;
-  height: 100vh;
+  aspect-ratio: 9 / 16;  // iframe 内使用 aspect-ratio 替代 vh
+  max-height: 800px;
   font-family: var(--font-body);
   font-size: var(--text-base);
   color: var(--text-primary);

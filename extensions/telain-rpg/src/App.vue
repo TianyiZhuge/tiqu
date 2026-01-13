@@ -111,8 +111,10 @@ onMounted(() => {
 
 #telain-app {
   width: 100%;
-  height: 100vh;
+  aspect-ratio: 9 / 16;  // 移动端比例，自动根据宽度计算高度
+  max-height: 800px;     // 限制最大高度
   overflow: hidden;
+  position: relative;
 }
 
 // Notifications

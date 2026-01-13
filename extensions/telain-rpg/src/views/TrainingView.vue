@@ -99,7 +99,7 @@ import { Icon } from '@/components/icons'
 .modal-panel {
   width: 100%;
   max-width: 600px;
-  max-height: 80vh;
+  max-height: 600px;
   display: flex;
   flex-direction: column;
   padding: var(--space-lg);
